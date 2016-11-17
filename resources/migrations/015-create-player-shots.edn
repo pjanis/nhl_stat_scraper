@@ -1,0 +1,12 @@
+{:up ["CREATE TABLE player_shots (
+        game_id varchar(20) NOT NULL,
+        team_id INTEGER NOT NULL,
+        play_id INTEGER NOT NULL,
+        shot_type_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        goal BOOLEAN NOT NULL DEFAULT FALSE,
+        period varchar(20) NOT NULL,
+        play_time TIME NOT NULL, 
+        strength varchar(20) NOT NULL);"]
+ :down ["DROP TABLE player_shots;"]
+}

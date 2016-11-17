@@ -1,0 +1,7 @@
+{:up ["CREATE TABLE teams (
+        db_id SERIAL PRIMARY KEY,
+        name varchar(40) NOT NULL UNIQUE,
+        common_name varchar(40) NOT NULL UNIQUE,
+        abreviation varchar(3) NOT NULL UNIQUE);"]
+ :down ["DROP TABLE teams;"]
+}

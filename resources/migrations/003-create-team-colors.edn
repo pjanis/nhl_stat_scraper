@@ -1,0 +1,6 @@
+{:up ["CREATE TABLE team_colors (
+        team_id INTEGER NOT NULL,
+        color VARCHAR(12) NOT NULL,
+        display BOOLEAN DEFAULT FALSE);"]
+ :down ["DROP TABLE team_colors;"]
+}

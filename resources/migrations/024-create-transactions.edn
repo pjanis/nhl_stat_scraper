@@ -1,0 +1,7 @@
+{:up ["CREATE TABLE transactions (
+        db_id SERIAL PRIMARY KEY,
+        transaction_date DATE NOT NULL,
+        transaction_type varchar(20) NOT NULL,
+        raw_transaction TEXT NOT NULL);"]
+ :down ["DROP TABLE transactions;"]
+}

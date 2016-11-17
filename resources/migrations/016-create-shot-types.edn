@@ -1,0 +1,16 @@
+{:up ["CREATE TABLE shot_types (
+        db_id SERIAL PRIMARY KEY,
+        type varchar(15),
+        on_net BOOLEAN NOT NULL,
+        block BOOLEAN NOT NULL DEFAULT FALSE,
+        miss_location varchar(150) DEFAULT NULL,
+        zone varchar(15) NOT NULL,
+        distance_ft INTEGER);"
+      "CREATE UNIQUE INDEX ON shot_types(
+        COALESCE(type, '-1'),
+        on_net, block,
+        COALESCE(miss_location,'-1'),
+        zone,
+        COALESCE(distance_ft,-1));"]
+ :down ["DROP TABLE shot_types;"]
+}

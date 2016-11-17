@@ -1,0 +1,3 @@
+{:up ["DELETE FROM game_summaries WHERE game_id='2016010087';"]  ;cancelled preseason game
+ :down []
+}

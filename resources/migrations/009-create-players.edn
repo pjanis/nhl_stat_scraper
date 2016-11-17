@@ -1,0 +1,4 @@
+{:up ["CREATE TABLE players (
+        id SERIAL PRIMARY KEY);"]
+ :down ["DROP TABLE players;"]
+}

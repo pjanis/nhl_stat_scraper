@@ -1,0 +1,12 @@
+{:up ["CREATE TABLE player_shifts (
+        team_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        game_id varchar(20) NOT NULL,
+        shift_number INTEGER NOT NULL,
+        period varchar(20) NOT NULL,
+        start_time TIME NOT NULL, 
+        stop_time TIME NOT NULL, 
+        duration INTERVAL NOT NULL, 
+        event_code varchar(2));"]
+ :down ["DROP TABLE player_shifts;"]
+}

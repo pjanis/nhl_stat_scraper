@@ -1,0 +1,19 @@
+{:up ["CREATE TABLE game_summaries (
+        db_id SERIAL PRIMARY KEY,
+        game_id varchar(20) NOT NULL,
+        season INTEGER NOT NULL,
+        preseason BOOLEAN DEFAULT FALSE,
+        regular_season BOOLEAN DEFAULT TRUE,
+        postseason BOOLEAN DEFAULT FALSE,
+        game_date DATE,
+        home_team_db_id INTEGER NOT NULL,
+        home_team_score INTEGER,
+        visiting_team_db_id INTEGER NOT NULL,
+        visiting_team_score INTEGER,
+        regulation_win BOOLEAN,
+        overtime_win BOOLEAN,
+        complete BOOLEAN DEFAULT FALSE,
+        CHECK (NOT (regulation_win AND overtime_win)),
+        CHECK (preseason OR regular_season OR postseason ));"]
+ :down ["DROP TABLE game_summaries;"]
+}

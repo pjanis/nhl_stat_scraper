@@ -1,0 +1,11 @@
+{:up ["CREATE TABLE game_players (
+        team_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        game_id varchar(20) NOT NULL,
+        captian BOOLEAN DEFAULT FALSE,
+        assistant BOOLEAN DEFAULT FALSE,
+        active BOOLEAN DEFAULT TRUE,
+        position varchar(2),
+        UNIQUE (team_id, player_id, game_id));"]
+ :down ["DROP TABLE game_players;"]
+}

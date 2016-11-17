@@ -1,0 +1,5 @@
+{:up ["CREATE TABLE player_drawn_penalties (
+        player_id INTEGER NOT NULL,
+        penalty_id INTEGER NOT NULL);"]
+ :down ["DROP TABLE player_drawn_penalties;"]
+}

@@ -1,0 +1,198 @@
+html, body
+{
+  height: 100%;
+}
+
+header, nav, article, footer, address {
+   display: block;
+}
+
+svg
+{
+  background-color: #ffffff;
+}
+
+.hidden
+{
+  display: none !important;
+}
+
+header {
+  position: absolute;
+  top:0px;
+  left: 0px;
+  width:100%;
+  text-align:center;
+  font-size: 20pt;
+  z-index: 10;
+}
+
+header div
+{
+  display: inline-block;
+}
+
+header a{
+  margin-left: 10px;
+  margin-right: 10px;
+  text-decoration: none;
+}
+
+header div#home_away_select
+{
+  position: absolute;
+  right:20px;
+  top:0px;
+}
+
+header div.selected
+{
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.home_incomplete,.away_incomplete
+{
+  background-color: #999999;
+}
+
+.home_ongoing,.away_ongoing
+{
+  background-color: #70B870;
+}
+
+body
+{
+  margin: 0px;
+  padding: 0px;
+  background: #ffffff;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 12pt;
+  font-weight: 300;
+  color: #000000;
+}
+
+h1, h2, h3
+{
+  margin: 0;
+  padding: 0;
+}
+
+p, ol, ul
+{
+  margin-top: 0;
+}
+
+div#game_details
+{
+  display: inline-block;
+  position:relative;
+  top: 45px;
+  left:1205px;
+  width: 400px;
+}
+
+div.game_detail
+{
+  position:absolute;
+  top:0px;
+  left:0px;
+  visibility: hidden;
+  text-align: left;
+  width: 100%;
+}
+
+div.game_detail.hovered_game
+{
+  visibility: visible;
+}
+
+div.detail_date
+{
+  position:relative;
+  width:100%;
+}
+
+div.detail_headline div
+{
+  display:inline-block;
+  width: 100%;
+}
+
+div.detail
+{
+  width:100%;
+}
+
+div.detail div
+{
+  display:inline-block;
+  width: auto;
+}
+
+div.detail div.detail_home{
+  border-bottom: 1px solid red;
+}
+
+div.team div
+{
+  display:inline-block;
+}
+
+div.team div.name
+{
+  width: 100px;
+}
+
+div.team div.record, div.team div.home_record, div.team div.away_record
+{
+  width: 75px;
+}
+
+div.team div.pts, div.team div.home_pts, div.team div.away_pts
+{
+  width: 25px;
+}
+
+.divisions, .teams
+{
+  padding-left:20px;
+}
+
+div.team .name, div.team .record, div.team .home_record, div.team .away_record, div.team .pts, div.team .home_pts, div.team .away_pts
+{
+  position: $position;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+div#conferences
+{
+  position:absolute;
+  top:5px;
+  left:0px;
+  width:1200px;
+  z-index: 5;
+}
+
+div.conference > div.name
+{
+  padding:5px 0px 5px 0px;
+}
+
+.hovered_bout
+{
+  background-color: #e0e0e0;
+}
+
+.hovered_bout.incomplete_game
+{
+  background-color: #b0b0b0;
+}
+
+svg.hovered_game, svg.incomplete_game.hovered_game
+{
+  background-color: #A2FBA2;
+}

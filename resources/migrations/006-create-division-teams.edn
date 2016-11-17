@@ -1,0 +1,6 @@
+{:up ["CREATE TABLE division_teams (
+        division_id INT NOT NULL,
+        team_id INT NOT NULL
+        );"]
+ :down ["DROP TABLE division_teams;"]
+}

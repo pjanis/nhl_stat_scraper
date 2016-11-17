@@ -1,0 +1,14 @@
+{:up ["CREATE TABLE plays (
+        db_id SERIAL PRIMARY KEY,
+        game_id varchar(20) NOT NULL,
+        play_number INTEGER NOT NULL,
+        strength varchar(20) NOT NULL,
+        period varchar(20) NOT NULL,
+        play_time TIME NOT NULL, 
+        play_event varchar(20),
+        play_description TEXT,
+        home_numbers varchar(40),
+        away_numbers varchar(40),
+        UNIQUE (game_id, play_number));"]
+ :down ["DROP TABLE plays;"]
+}
