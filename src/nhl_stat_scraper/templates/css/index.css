@@ -56,10 +56,16 @@ header div.selected
   background-color: #999999;
 }
 
+.home_upcoming,.away_upcoming
+{
+  background-color: #D9BB8D;
+}
+
 .home_ongoing,.away_ongoing
 {
-  background-color: #70B870;
+  background-color: #549F7D;
 }
+
 
 body
 {
@@ -86,7 +92,7 @@ p, ol, ul
 div#game_details
 {
   display: inline-block;
-  position:relative;
+  position:fixed;
   top: 45px;
   left:1205px;
   width: 400px;
@@ -97,14 +103,8 @@ div.game_detail
   position:absolute;
   top:0px;
   left:0px;
-  visibility: hidden;
   text-align: left;
   width: 100%;
-}
-
-div.game_detail.hovered_game
-{
-  visibility: visible;
 }
 
 div.detail_date
@@ -132,6 +132,12 @@ div.detail div
 
 div.detail div.detail_home{
   border-bottom: 1px solid red;
+}
+
+div.detail div.detail_score
+{
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 div.team div
@@ -187,12 +193,18 @@ div.conference > div.name
   background-color: #e0e0e0;
 }
 
-.hovered_bout.incomplete_game
+.hovered_bout.home_upcoming,.hovered_bout.away_upcoming
 {
-  background-color: #b0b0b0;
+  background-color: #F2DBB6;
 }
 
-svg.hovered_game, svg.incomplete_game.hovered_game
+.hovered_bout.home_ongoing,.hovered_bout.away_ongoing
+{
+  background-color: #6BB392;
+}
+
+svg.hovered_game, svg.home_upcoming.hovered_game, svg.away_upcoming.hovered_game,svg.incomplete_game.hovered_game
 {
   background-color: #A2FBA2;
 }
+

@@ -2,6 +2,8 @@
   (:require [net.cgrand.enlive-html :as enlive]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [clj-time.core]
+            [clj-time.local]
             [nhl-stat-scraper.common.parse :as common-parse]
             [nhl-stat-scraper.report.teams :as teams]
             [nhl-stat-scraper.report.games :as games]))
@@ -21,6 +23,7 @@
 (game-snippet-model home-ot-win)
 (game-snippet-model home-so-loss)
 (game-snippet-model home-so-win)
+(game-snippet-model home-upcoming)
 (game-snippet-model home-win)
 (game-snippet-model away-loss)
 (game-snippet-model away-incomplete)
@@ -29,11 +32,21 @@
 (game-snippet-model away-ot-win)
 (game-snippet-model away-so-loss)
 (game-snippet-model away-so-win)
+(game-snippet-model away-upcoming)
 (game-snippet-model away-win)
 
 (defn game-result [game-data]
   (case (get game-data :points)
-    0 (if (get game-data :complete) "loss" (if (get game-data :ongoing) "ongoing" "incomplete"))
+    0 (cond
+        (get game-data :complete) "loss"
+        (get game-data :ongoing) "ongoing"
+        (= (get game-data :game-date)
+           (clj-time.local/format-local-time
+             (clj-time.core/to-time-zone
+               (clj-time.local/local-now)
+               (clj-time.core/time-zone-for-offset -8))
+             :date)) "upcoming"
+        :else "incomplete")
     1 (if (get game-data :shootout) "so-loss" "ot-loss")
     2 (if (get game-data :overtime-win) "ot-win" (if (get game-data :shootout) "so-win" "win"))))
 
@@ -49,6 +62,7 @@
     "home-ot-win" (home-ot-win-model game-data)
     "home-so-loss" (home-so-loss-model game-data)
     "home-so-win" (home-so-win-model game-data)
+    "home-upcoming" (home-upcoming-model game-data)
     "home-win" (home-win-model game-data)
     "away-loss" (away-loss-model game-data)
     "away-incomplete" (away-incomplete-model game-data)
@@ -57,6 +71,7 @@
     "away-ot-win" (away-ot-win-model game-data)
     "away-so-loss" (away-so-loss-model game-data)
     "away-so-win" (away-so-win-model game-data)
+    "away-upcoming" (away-upcoming-model game-data)
     "away-win" (away-win-model game-data))
   )
 
@@ -140,7 +155,8 @@
   [:title] (enlive/content title)
   [:div#year_select] (enlive/html-content (header-content season season-part))
   [:div#conferences]   (enlive/content (map #(conference-model % season season-part) (sort-by :conference-name conferences)))
-  [:div#game_details]   (enlive/content (map #(detail-model %) (games/season-games season season-part))))
+  [:script#game_data] (enlive/content (clojure.data.json/write-str (games/season-games season season-part))))
+
 
 (defn write-teams-to-index
   ([index-template index-data] (write-teams-to-index index-template index-data "public/index.html"))

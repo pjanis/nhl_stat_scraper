@@ -1,0 +1,4 @@
+{:up ["ALTER TABLE teams ADD COLUMN start_season INTEGER DEFAULT NULL,
+                         ADD COLUMN stop_season INTEGER DEFAULT NULL;"]
+ :down ["ALTER TABLE teams DROP COLUMN start_season, DROP COLUMN stop_season;"]
+}

@@ -11,12 +11,16 @@
 (defn parse-int [s]
     (Integer/parseInt (re-find #"\A-?\d+" s)))
 
+(defn us-date-str-to-iso-date-str [date-str]
+  (let [raw-date (string/split date-str #"/")]
+    (string/join "-" (cons (last raw-date) (butlast raw-date)))))
+
 (defn string-to-date [date-str]
   (clj-time.format/parse (clj-time.format/formatters :date) date-str))
 
 (dire.core/with-handler! #'string-to-date
   java.lang.IllegalArgumentException
-  (fn [e & args] 
+  (fn [e & args]
       (clj-time.format/parse (clj-time.format/formatter "MMMM dd, YYYYY") (first args))))
 
 (defn string-to-time [time-str]

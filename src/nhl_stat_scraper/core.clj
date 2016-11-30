@@ -36,8 +36,8 @@
 (defn run-corrections! []
   (db-pg/run-corrections!))
 
-(defn bootstrap-season [season]
-  nil)
+(defn populate-season [options]
+  (db-populate/populate-season-game-summaries (:season options)))
 
 (defn bootstrap-all []
   (migrate)
@@ -79,6 +79,7 @@
     "  migrate           Run all new migrations"
     "  rollback          Rollback one migration"
     "  bootstrap         Setup database and fetch all data"
+    "  populate-season   Adds season game summaries to database (must be run once to make update possible)"
     "  run-corrections   Run database corrections"
     "  update-standings  Update standing information and create new index files"
     "  update-play-data  Updates all play, shift, and roster data"
@@ -106,6 +107,7 @@
       "migrate" (migrate)
       "rollback" (rollback)
       "bootstrap" (bootstrap options)
+      "populate-season" (populate-season options)
       "run-corrections" (run-corrections!)
       "update-standings" (update-standings options)
       "update-play-data" (update-play-data options)

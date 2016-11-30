@@ -1,0 +1,6 @@
+{:up ["CREATE TABLE team_relations (
+        team_id INT NOT NULL,
+        relation_id INT NOT NULL,
+        relation_type varchar(100));"]
+ :down ["DROP TABLE team_relations;"]
+}

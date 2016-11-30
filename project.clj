@@ -1,4 +1,4 @@
-(defproject nhl_stat_scraper "0.2.4-SNAPSHOT"
+(defproject nhl_stat_scraper "0.3.1-SNAPSHOT"
   :description "App to create database with NHL game data"
   :url ""
   :license {:name "Eclipse Public License"

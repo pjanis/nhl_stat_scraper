@@ -1,0 +1,8 @@
+{:up ["CREATE TABLE seasons (
+        season INTEGER NOT NULL,
+        start_date DATE DEFAULT NULL,
+        stop_date DATE DEFAULT NULL,
+        number_of_teams INTEGER DEFAULT NULL,
+        UNIQUE (season));"]
+ :down ["DROP TABLE seasons;"]
+}

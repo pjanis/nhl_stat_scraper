@@ -1,8 +1,8 @@
 (ns nhl-stat-scraper.database.populate
   (:require
     [clojure.java.jdbc :as jdbc]
-    [nhl-stat-scraper.parse.json :as json-parse]
-    [nhl-stat-scraper.parse.html :as html-parse]
+    [nhl-stat-scraper.parse.json :as parse-json]
+    [nhl-stat-scraper.parse.html :as parse-html]
     [nhl-stat-scraper.database.teams]
     [nhl-stat-scraper.database.games]
     [nhl-stat-scraper.database.divisions]
@@ -12,19 +12,50 @@
     [nhl-stat-scraper.database.populate-helpers :as helpers]
     [nhl-stat-scraper.database.postgres :as db-pg]))
 
+(defn season-start-date [season]
+  (case season
+    2016 "2016-10-12"
+    2015 "2015-10-07"
+    2014 "2014-10-08"
+    2013 "2013-10-01"
+    2012 "2013-01-19"
+    2011 "2011-10-06"))
+
 (defn populate-teams []
-  (nhl-stat-scraper.database.teams/populate-teams db-pg/pg-datasource (json-parse/all-teams)))
+  (nhl-stat-scraper.database.teams/populate-teams db-pg/pg-datasource (parse-json/all-teams)))
 
 (defn populate-team-colors []
-  (nhl-stat-scraper.database.teams/populate-team-colors db-pg/pg-datasource (html-parse/wikipedia-team-info)))
+  (nhl-stat-scraper.database.teams/populate-team-colors db-pg/pg-datasource (parse-html/wikipedia-team-info)))
+
+(defn populate-game-summaries-from-parsed-json [parsed-json]
+  (if-let [game-summaries (seq (filter #(empty? (nhl-stat-scraper.database.games/db-game-summary-ids (:game_id %)))
+                                       (parse-json/game-summaries-from-parsed-json parsed-json)))]
+    (nhl-stat-scraper.database.games/insert-game-summaries db-pg/pg-datasource game-summaries)
+    nil))
+
+(defn populate-game-summaries-on [date]
+  (if-let [game-summaries (seq (filter #(empty? (nhl-stat-scraper.database.games/db-game-summary-ids (:game_id %)))
+                                       (parse-json/game-summaries-on date)))]
+    (nhl-stat-scraper.database.games/insert-game-summaries db-pg/pg-datasource game-summaries)
+    nil))
 
 (defn populate-game-summaries
   ([] (populate-game-summaries "2015-10-07"))
-  ([start-date]
-    (print (format "Populating %s\n" start-date))
-    (nhl-stat-scraper.database.games/insert-game-summaries db-pg/pg-datasource (json-parse/game-summaries-on start-date))
-    (let [next-date (json-parse/next-date start-date)]
-      (if (not-empty next-date) (populate-game-summaries next-date)))))
+  ([date] (populate-game-summaries date nil))
+  ([date season]
+    (let [parsed-json (parse-json/parsed-date-json date)]
+      (if (or (nil? season)
+              (and (not (empty? (get parsed-json "games")))
+                   (= season
+                      (nhl-stat-scraper.common.parse/parse-int (subs (str (get (first (get parsed-json "games")) "id")) 0 4)))))
+        (do
+          (print (format "Populating %s\n" date)) ;TODO move to timbre logging
+          (populate-game-summaries-from-parsed-json parsed-json)
+          (let [next-date (parse-json/next-date-from-parsed-json parsed-json)]
+            (if (not-empty next-date) (populate-game-summaries next-date season))))))))
+
+(defn populate-season-game-summaries [season]
+  (populate-game-summaries (season-start-date season) season))
 
 (defn populate-divisions []
   (nhl-stat-scraper.database.divisions/populate-divisions db-pg/pg-datasource))
@@ -36,13 +67,13 @@
   (nhl-stat-scraper.database.teams/populate-division-teams
     db-pg/pg-datasource
     (nhl-stat-scraper.database.divisions/db-divisions)
-    (html-parse/wikipedia-team-info)))
+    (parse-html/wikipedia-team-info)))
 
 (defn populate-conference-teams []
   (nhl-stat-scraper.database.teams/populate-conference-teams
     db-pg/pg-datasource
     (nhl-stat-scraper.database.conferences/db-conferences)
-    (html-parse/wikipedia-team-info)))
+    (parse-html/wikipedia-team-info)))
 
 (defn populate-players-and-roster [game-summary]
   (let [game-id (get game-summary :game_id)
@@ -52,10 +83,10 @@
         away-team-id (or
                        (get game-summary :visiting_team_db_id)
                        (nhl-stat-scraper.database.games/db-game-summary-away-team-id game-id))]
-  (if-let [raw-roster  (html-parse/game-roster-raw game-id)]
+  (if-let [raw-roster  (parse-html/game-roster-raw game-id)]
     (do
-      (nhl-stat-scraper.database.players/update-players-and-roster game-id home-team-id (html-parse/home-player-list raw-roster))
-      (nhl-stat-scraper.database.players/update-players-and-roster game-id away-team-id (html-parse/away-player-list raw-roster))))))
+      (nhl-stat-scraper.database.players/update-players-and-roster game-id home-team-id (parse-html/home-player-list raw-roster))
+      (nhl-stat-scraper.database.players/update-players-and-roster game-id away-team-id (parse-html/away-player-list raw-roster))))))
 
 (defn populate-player-shifts [game-summary]
   (let [game-id (get game-summary :game_id)
@@ -65,9 +96,9 @@
         away-team-id (or
                        (get game-summary :visiting_team_db_id)
                        (nhl-stat-scraper.database.games/db-game-summary-away-team-id game-id))]
-    (if-let [home-shifts (html-parse/home-player-shifts game-id)]
+    (if-let [home-shifts (parse-html/home-player-shifts game-id)]
       (nhl-stat-scraper.database.players/add-game-player-shifts game-id home-team-id home-shifts))
-    (if-let [away-shifts (html-parse/away-player-shifts game-id)]
+    (if-let [away-shifts (parse-html/away-player-shifts game-id)]
       (nhl-stat-scraper.database.players/add-game-player-shifts game-id away-team-id away-shifts))))
 
 (defn populate-game-plays [game-summary]
@@ -78,7 +109,7 @@
         away-team-id (or
                        (get game-summary :visiting_team_db_id)
                        (nhl-stat-scraper.database.games/db-game-summary-away-team-id game-id))]
-    (if-let [game-plays (html-parse/game-plays game-id)]
+    (if-let [game-plays (parse-html/game-plays game-id)]
       (doseq [play game-plays]
         (let [db-play (first (apply nhl-stat-scraper.database.plays/add-play game-id play))]
           (helpers/insert-parsed-db-play game-id db-play))))))
@@ -114,7 +145,7 @@
 (defn update-game-summaries-on
   ([update-date] (update-game-summaries-on update-date true))
   ([update-date update-details]
-    (doseq [game-summary (json-parse/game-summaries-on update-date)] (update-game-summary game-summary update-details))))
+    (doseq [game-summary (parse-json/game-summaries-on update-date)] (update-game-summary game-summary update-details))))
 
 (defn update-game-summaries
   ([] (update-game-summaries true))
