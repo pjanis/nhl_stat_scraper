@@ -203,7 +203,7 @@ div.conference > div.name
   background-color: #6BB392;
 }
 
-svg.hovered_game, svg.home_upcoming.hovered_game, svg.away_upcoming.hovered_game,svg.incomplete_game.hovered_game
+svg.hovered_game, svg.home_upcoming.hovered_game, svg.away_upcoming.hovered_game,svg.incomplete_game.hovered_game,svg.home_ongoing.hovered_game, svg.away_ongoing.hovered_game
 {
   background-color: #A2FBA2;
 }
