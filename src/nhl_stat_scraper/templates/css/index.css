@@ -45,6 +45,20 @@ header div#home_away_select
   top:0px;
 }
 
+header div#row_select
+{
+  position: absolute;
+  right:20px;
+  top:35px;
+}
+
+header div#conference_select
+{
+  position: absolute;
+  right:20px;
+  top:65px;
+}
+
 header div.selected
 {
   background-color: #000000;
@@ -153,6 +167,11 @@ div.team div.name
 div.team div.record, div.team div.home_record, div.team div.away_record
 {
   width: 75px;
+}
+
+div.team div.record.record_with_row, div.team div.home_record.record_with_row, div.team div.away_record.record_with_row
+{
+  width: 100px;
 }
 
 div.team div.pts, div.team div.home_pts, div.team div.away_pts

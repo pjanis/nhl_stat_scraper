@@ -1,11 +1,11 @@
-(defproject nhl_stat_scraper "0.3.2-SNAPSHOT"
+(defproject nhl_stat_scraper "0.3.3-SNAPSHOT"
   :description "App to create database with NHL game data"
   :url ""
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[clj-http "2.0.0"]
                  [clj-time "0.11.0"]
-                 [com.taoensso/timbre "4.7.4"] 
+                 [com.taoensso/timbre "4.7.4"]
  ;                [com.fzakaria/slf4j-timbre "0.3.1"]
                  [compojure "1.4.0"]
                  [dire "0.5.4"]

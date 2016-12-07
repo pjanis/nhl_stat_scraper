@@ -80,7 +80,9 @@
 (def team-select [[:div.team (enlive/nth-of-type 1)]])
 
 (enlive/defsnippet team-model "nhl_stat_scraper/templates/team.html.snippet" team-select
-  [{:keys [team-id]} season season-part]
+  [{:keys [team-id]} division-name conference-name season season-part]
+  [:div.team] (enlive/do->
+                (enlive/add-class division-name conference-name))
   [:div.name] (enlive/do->
         (enlive/content (teams/team-name team-id)))
   [:div.pts] (enlive/do->
@@ -105,10 +107,10 @@
 (def division-select [[:div.division (enlive/nth-of-type 1)]])
 
 (enlive/defsnippet division-model "nhl_stat_scraper/templates/division.html.snippet" division-select
-  [{:keys [division-name division-teams]} season season-part]
+  [{:keys [division-name division-teams]} conference-name season season-part]
   [:div.name] (enlive/do->
         (enlive/content division-name))
-  [:div.teams] (enlive/content (map #(team-model % season season-part) (sort-by :team-id #(games/standings-comparison %1 %2 season season-part) division-teams)))
+  [:div.teams] (enlive/content (map #(team-model % division-name conference-name season season-part) (sort-by :team-id #(games/standings-comparison %1 %2 season season-part) division-teams)))
   )
 
 (def conference-select [[:div.conference (enlive/nth-of-type 1)]])
@@ -117,7 +119,7 @@
   [{:keys [conference-name conference-divisions]} season season-part]
   [:div.name] (enlive/do->
         (enlive/content conference-name))
-  [:div.divisions] (enlive/content (map #(division-model % season season-part) (sort-by :division-name conference-divisions)))
+  [:div.divisions] (enlive/content (map #(division-model % conference-name season season-part) (sort-by :division-name conference-divisions)))
   )
 
 (def detail-select [[:div.game_detail (enlive/nth-of-type 1)]])
