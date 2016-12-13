@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var resort_function = function() {
       var self = this;
       away_resort();
-      last_resort_function=home_resort;
+      last_resort_function=away_resort;
       self.remove();
     };
     home_away_toggle(self, away_classes, home_classes.concat(all_classes), exc_away_classes, exc_home_classes, exc_all_classes,resort_function);
