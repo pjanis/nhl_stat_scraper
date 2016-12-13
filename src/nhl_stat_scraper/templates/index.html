@@ -7,18 +7,23 @@
 <body>
   <header>
     <div id="year_select">&nbsp;</div>
-    <div id="home_away_select">
-      <div id="home_select">Home</div>
-      <div id="away_select">Away</div>
-    </div>
-    <div id="row_select" title="Regulation and Overtime Wins">ROW</div>
-    <div id="conference_select">By Conference</div>
+    <div id="display_options">
+      <div id="home_away_select"><div id="home_select">Home</div><div id="away_select">Away</div></div>
+      <div id="row_select" title="Regulation and Overtime Wins">ROW</div>
+      <div id="league_level_select">
+        <div id="conference_select">Conference</div>
+        <div id="league_select">League</div>
+      </div>
+      <div id="top_3_select">Top 3</div>
+      <div id="playoffs_select">Playoff Teams</div>
+   </div>
   </header>
   <script id="game_data" type="application/json"></script>
   <div id="game_details">
     <div>&nbsp;</div>
   </div>
-  <div id="conferences">
+  <div id="league">
+    <div id="conferences"></div>
   </div>
 </body>
 </html>

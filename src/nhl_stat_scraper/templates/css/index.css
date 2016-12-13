@@ -38,31 +38,34 @@ header a{
   text-decoration: none;
 }
 
-header div#home_away_select
-{
+header #display_options{
   position: absolute;
+  width:200px;
   right:20px;
   top:0px;
 }
 
-header div#row_select
-{
-  position: absolute;
-  right:20px;
-  top:35px;
+header #display_options div{
+  display: block;
 }
 
-header div#conference_select
-{
-  position: absolute;
-  right:20px;
-  top:65px;
-}
-
-header div.selected
+header #display_options div.selected
 {
   background-color: #000000;
   color: #FFFFFF;
+}
+
+header #display_options div#home_away_select {
+  border: 1px solid black;
+}
+
+header #display_options div#home_away_select div{
+  display:inline-block;
+  width: 50%;
+}
+
+header #display_options div#league_level_select {
+  border: 1px solid black;
 }
 
 .home_incomplete,.away_incomplete
@@ -179,12 +182,34 @@ div.team div.pts, div.team div.home_pts, div.team div.away_pts
   width: 25px;
 }
 
-.divisions, .teams
+.divisions
 {
   padding-left:20px;
 }
 
-div.team .name, div.team .record, div.team .home_record, div.team .away_record, div.team .pts, div.team .home_pts, div.team .away_pts
+.teams
+{
+  padding-left:10px;
+}
+
+div.team .icon
+{
+  position:relative;
+  width:10px;
+}
+
+div.icon_mark
+{
+  position: absolute;
+  left: 0px;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+
+div.team .name, div.team .record, div.team .home_record, div.team .away_record, div.team .pts, div.team .home_pts, div.team .away_pts, div.team .icon
 {
   position: $position;
   top: 50%;
@@ -193,10 +218,10 @@ div.team .name, div.team .record, div.team .home_record, div.team .away_record, 
   transform: translateY(-50%);
 }
 
-div#conferences
+div#league
 {
   position:absolute;
-  top:5px;
+  top:15px;
   left:0px;
   width:1200px;
   z-index: 5;
