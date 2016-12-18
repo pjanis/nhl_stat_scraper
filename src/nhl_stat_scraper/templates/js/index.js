@@ -6,6 +6,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
   var game_data = JSON.parse(document.getElementById("game_data").innerHTML);
 
+  var format_date = function(date) {
+    var day = date.getDate();
+    var month = date.getMonth() + 1;
+    var year = date.getFullYear();
+
+    if (day < 10 ) { day = "0" + day; }
+    if (month < 10 ) { month = "0" + month; }
+
+    return [year,month,day].join("-");
+  };
+
   var create_index = function(data, index_key) {
     var index = {};
     for(var i=0, data_length= data.length; i < data_length; i++) {
@@ -172,6 +183,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   };
 
+  var toggle_class_on_classes = function(class_name, classes, scoping_element) {
+    scoping_element = default_for(scoping_element, document);
+    var elements;
+    for (var i=0; i < classes.length; i++) {
+      elements = scoping_element.getElementsByClassName(classes[i]);
+      for (var j=0, el_length= elements.length; j < el_length; j++) {
+        elements[j].classList.toggle(class_name);
+      }
+    }
+  };
+
   // toggles their classes and makes sure our classes are visible when selected
   var hidden_toggle = function(select_our_classes, our_classes, their_classes) {
     if (select_our_classes) {
@@ -220,6 +242,21 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     return sum;
   };
+
+  var menu_toggle = function() {
+    var self = this;
+    var siblings = getSiblings(self, hasClassList);
+    var i;
+    for (i=0; i < siblings.length; i++) {
+      if (self != siblings[i]) {
+        siblings[i].classList.toggle("hidden");
+      }
+    }
+    self.classList.toggle("selected");
+  };
+
+  document.getElementById("display_options_toggle").addEventListener("click",menu_toggle,false);
+  document.getElementById("key_select").addEventListener("click",menu_toggle,false);
 
   var record = function(results, win_classes, loss_classes, extra_time_loss_classes) {
     return [count_occurences_of_classes(results, win_classes), count_occurences_of_classes(results, loss_classes), count_occurences_of_classes(results, extra_time_loss_classes)].join("-");
@@ -293,6 +330,23 @@ document.addEventListener("DOMContentLoaded", function() {
   var away_resort= function() { resort_teams([team_away_pts,team_away_row]); };
   var last_resort_function=resort_teams;
 
+  var resort_listener_template = function(self,resort_function) {
+    resort_function();
+    last_resort_function=resort_function;
+    document.getElementById("home_away_select").classList.remove("sort_selected");
+    document.getElementById("home_select").classList.remove("sort_selected");
+    document.getElementById("away_select").classList.remove("sort_selected");
+    if (resort_function == home_resort) {
+      document.getElementById("home_select").classList.add("sort_selected");
+    } else if (resort_function == away_resort){
+      document.getElementById("away_select").classList.add("sort_selected");
+    } else if (resort_function == resort_teams){
+      document.getElementById("home_away_select").classList.add("sort_selected");
+    }
+    self.remove();
+  };
+
+
   var home_away_toggle = function( self, our_classes, their_classes, exc_our_classes, exc_their_classes, exc_all_classes, resort_function ) {
     var select_our_classes = !(self.classList.contains("selected"));
     hidden_toggle(select_our_classes, our_classes, their_classes);
@@ -302,12 +356,7 @@ document.addEventListener("DOMContentLoaded", function() {
       siblings[i].classList.remove("selected");
     }
     var resort_div;
-    var reset_teams = function() {
-      var self = this;
-      resort_teams();
-      last_resort_function=resort_teams;
-      self.remove();
-    };
+    var reset_teams = function() { var self = this; resort_listener_template(self,resort_teams);};
     if (select_our_classes) {
       remove_resort_element(self.parentElement);
       self.classList.add("selected");
@@ -329,23 +378,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
   var home_toggle =  function(){
     var self = this;
-    var resort_function = function() {
-      var self = this;
-      home_resort();
-      last_resort_function=home_resort;
-      self.remove();
-    };
+    var resort_function = function() { var self = this; resort_listener_template(self, home_resort);};
     home_away_toggle(self, home_classes, away_classes.concat(all_classes), exc_home_classes, exc_away_classes, exc_all_classes, resort_function);
   };
 
   var away_toggle =  function(){
     var self = this;
-    var resort_function = function() {
-      var self = this;
-      away_resort();
-      last_resort_function=away_resort;
-      self.remove();
-    };
+    var resort_function = function() { var self = this; resort_listener_template(self, away_resort);};
     home_away_toggle(self, away_classes, home_classes.concat(all_classes), exc_away_classes, exc_home_classes, exc_all_classes,resort_function);
   };
 
@@ -636,5 +675,36 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("top_3_select").addEventListener("click", top_3_toggle, false);
   document.getElementById("playoffs_select").addEventListener("click", playoffs_toggle, false);
+
+  var toggle_days_games = function(toggle_class,day) {
+    var i;
+    var day_str = format_date(default_for(day,new Date));
+    var league_scope = document.getElementById("league");
+    for (i=0; i<game_data.length; i++) {
+      if (game_data[i]["game-date"] === day_str) {
+        toggle_class_on_classes(toggle_class,["game_"+game_data[i]["game-id"]],league_scope);
+      }
+    }
+  };
+
+  var todays_games_toggle = function() {
+    var self = this;
+    self.classList.toggle("selected");
+    toggle_days_games("todays_game",new Date);
+  };
+  var yesterdays_games_toggle = function() {
+    var self = this;
+    self.classList.toggle("selected");
+    toggle_days_games("yesterdays_game",(function (d) { d.setDate(d.getDate()-1); return d;})(new Date));
+  };
+  var tomorrows_games_toggle = function() {
+    var self = this;
+    self.classList.toggle("selected");
+    toggle_days_games("tomorrows_game",(function (d) { d.setDate(d.getDate()+1); return d;})(new Date));
+  };
+
+  document.getElementById("today_select").addEventListener("click", todays_games_toggle, false);
+  document.getElementById("tomorrow_select").addEventListener("click", tomorrows_games_toggle, false);
+  document.getElementById("yesterday_select").addEventListener("click", yesterdays_games_toggle, false);
 
 });

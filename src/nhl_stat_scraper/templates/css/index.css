@@ -38,18 +38,24 @@ header a{
   text-decoration: none;
 }
 
-header #display_options{
+header #display_options_menu{
   position: absolute;
   width:200px;
-  right:20px;
+  right:0px;
   top:0px;
+  background-color: #FFFFFF;
 }
 
-header #display_options div{
+header #display_options_menu div{
   display: block;
 }
 
-header #display_options div.selected
+header #display_options_menu div.display_options_menu_spacer {
+  display: block;
+  height:10px;
+}
+
+header #display_options_menu div.selected
 {
   background-color: #000000;
   color: #FFFFFF;
@@ -59,6 +65,16 @@ header #display_options div#home_away_select {
   border: 1px solid black;
 }
 
+header #display_options div#home_away_select.sort_selected {
+  border: 1px solid #990000;
+}
+
+header #display_options div#home_select.sort_selected,
+header #display_options div#away_select.sort_selected {
+  border: 1px solid #990000;
+  width: calc(50% - 2px);
+}
+
 header #display_options div#home_away_select div{
   display:inline-block;
   width: 50%;
@@ -66,6 +82,10 @@ header #display_options div#home_away_select div{
 
 header #display_options div#league_level_select {
   border: 1px solid black;
+}
+
+header #key_sub_menu .key_item {
+  font-size:12px;
 }
 
 .home_incomplete,.away_incomplete
@@ -251,4 +271,18 @@ svg.hovered_game, svg.home_upcoming.hovered_game, svg.away_upcoming.hovered_game
 {
   background-color: #A2FBA2;
 }
+
+svg.todays_game rect{
+  stroke: #e07b00;
+  stroke-width: 2px !important;
+}
+svg.tomorrows_game rect{
+  stroke: #1effbb;
+  stroke-width: 2px !important;
+}
+svg.yesterdays_game rect{
+  stroke: #9a16ff;
+  stroke-width: 2px !important;
+}
+
 
