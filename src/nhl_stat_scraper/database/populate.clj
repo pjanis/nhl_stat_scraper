@@ -1,8 +1,11 @@
 (ns nhl-stat-scraper.database.populate
   (:require
     [clojure.java.jdbc :as jdbc]
+    [clj-time.core]
     [nhl-stat-scraper.parse.json :as parse-json]
     [nhl-stat-scraper.parse.html :as parse-html]
+    [nhl-stat-scraper.common.games]
+    [nhl-stat-scraper.common.parse]
     [nhl-stat-scraper.database.teams]
     [nhl-stat-scraper.database.games]
     [nhl-stat-scraper.database.divisions]
@@ -47,7 +50,7 @@
       (if (or (nil? season)
               (and (not (empty? (get parsed-json "games")))
                    (= season
-                      (nhl-stat-scraper.common.parse/parse-int (subs (str (get (first (get parsed-json "games")) "id")) 0 4)))))
+                      (nhl-stat-scraper.common.games/season-from-id (get (first (get parsed-json "games")) "id")))))
         (do
           (print (format "Populating %s\n" date)) ;TODO move to timbre logging
           (populate-game-summaries-from-parsed-json parsed-json)
@@ -147,9 +150,32 @@
   ([update-date update-details]
     (doseq [game-summary (parse-json/game-summaries-on update-date)] (update-game-summary game-summary update-details))))
 
+(defn update-game-summaries-from
+  ([update-date] (update-game-summaries-from update-date true))
+  ([update-date update-details] (update-game-summaries-from update-date
+                                                            update-details
+                                                            (-> update-date
+                                                                (parse-json/game-summaries-on)
+                                                                (first)
+                                                                (get :game_id)
+                                                                (nhl-stat-scraper.common.games/season-from-id))))
+  ([update-date update-details season-to-update]
+    (let [game-summaries (parse-json/game-summaries-on update-date)]
+      (if (= season-to-update (nhl-stat-scraper.common.games/season-from-id (get (first game-summaries) :game_id)))
+          (do
+            (doseq [game-summary game-summaries] (update-game-summary game-summary update-details))
+            (let [next-date (parse-json/next-date update-date)]
+              (if (not-empty next-date) (update-game-summaries-from next-date update-details season-to-update))))))))
+
 (defn update-game-summaries
   ([] (update-game-summaries true))
   ([update-details]
-    (doseq [incomplete-date (nhl-stat-scraper.database.games/incomplete-dates)]
-      (if (< (compare incomplete-date (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (new java.util.Date))) 1)
-        (update-game-summaries-on incomplete-date update-details)))))
+    (let [incomplete-dates (nhl-stat-scraper.database.games/incomplete-dates)]
+      (if (clj-time.core/before? (nhl-stat-scraper.common.parse/string-to-date (first incomplete-dates))
+                                 (clj-time.core/minus (clj-time.core/now) (clj-time.core/days 1)))
+        (update-game-summaries-from (first incomplete-dates) update-details)
+        (doseq [incomplete-date incomplete-dates]
+          (if (not (clj-time.core/after? (nhl-stat-scraper.common.parse/string-to-date incomplete-date)
+                                         (clj-time.core/now)))
+            (update-game-summaries-on incomplete-date update-details)))))))
+
