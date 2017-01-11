@@ -4,6 +4,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
   var games = document.querySelectorAll(".results > svg[class*=game_]:not(.game_divider)");
 
+  var hidden_classes = ["hidden","last_n_hidden"];
+
+  var displayed_games = function(scoping_element){
+    scoping_element = default_for(scoping_element, document);
+    var i;
+    var not_hidden_selector = "";
+    for (i = 0; i < hidden_classes.length; i++) {
+      not_hidden_selector += ":not(." + hidden_classes[i] + ")";
+    }
+    return scoping_element.querySelectorAll(".results > svg[class*=game_]:not(.game_divider)" + not_hidden_selector);
+  };
+
   var game_data = JSON.parse(document.getElementById("game_data").innerHTML);
 
   var format_date = function(date) {
@@ -35,16 +47,15 @@ document.addEventListener("DOMContentLoaded", function() {
   var away_wins = ["away_so_win"].concat(away_row);
   var away_otl = ["away_ot_loss", "away_so_loss"];
   var away_losses = ["away_loss"];
-  var home_classes = ["home_incomplete", "home_upcoming", "home_ongoing"].concat(home_wins).concat(home_losses).concat(home_otl);
-  var away_classes = ["away_incomplete", "away_upcoming", "away_ongoing"].concat(away_wins).concat(away_losses).concat(away_otl);
+  var home_incomplete = ["home_incomplete", "home_upcoming", "home_ongoing"];
+  var away_incomplete = ["away_incomplete", "away_upcoming", "away_ongoing"];
+  var home_classes = home_incomplete.concat(home_wins).concat(home_losses).concat(home_otl);
+  var away_classes = away_incomplete.concat(away_wins).concat(away_losses).concat(away_otl);
   var win_classes = home_wins.concat(away_wins);
   var row_wins = home_row.concat(away_row);
   var loss_classes = ["home_loss", "away_loss"];
   var extra_time_loss_classes = ["home_ot_loss","home_so_loss","away_ot_loss","away_so_loss"];
   var all_classes = []; //classes that belong to the complete display (home + away)
-  var exc_home_classes = ["home_record", "home_pts"];
-  var exc_away_classes = ["away_record", "away_pts"];
-  var exc_all_classes = ["record","pts"];
 
   var append_content = function(base_element, content) {
     if (content === undefined) {
@@ -53,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
       for (var i=0; i < content.length; i++) {
         append_content(base_element, content[i]);
       }
-    } else if (HTMLCollection.prototype.isPrototypeOf(content)) {
+    } else if ((HTMLCollection.prototype.isPrototypeOf(content)) || (NodeList.prototype.isPrototypeOf(content))) {
       append_content(base_element, Array.prototype.slice.call(content));
     } else if (hasClassList(content)) {
       base_element.appendChild(content);
@@ -98,16 +109,15 @@ document.addEventListener("DOMContentLoaded", function() {
     base_element.appendChild(node);
   };
 
-
   var bout_toggle = function() {
-    var classes = this.getAttribute("class").split(" ");
-    var bout = classes.find(function (el) {
-      return el.indexOf("bout_") >= 0;
-    });
-    var bout_games = document.getElementsByClassName(bout);
+    var self = this;
+    var element_index = Array.prototype.indexOf.call(displayed_games(self.parentNode), self);
+    var results = document.getElementsByClassName("results");
     var i;
-    for (i = 0; i < bout_games.length; i++) {
-      bout_games[i].classList.toggle("hovered_bout");
+    var games;
+    for (i = 0; i < results.length; i++) {
+      games = displayed_games(results[i]);
+      games[element_index].classList.toggle("hovered_bout");
     }
   };
 
@@ -204,19 +214,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   };
 
-  // toggles between our_classes and all_classes while makeing sure their_classes are hidden
-  var exclusive_hidden_toggle = function(select_our_classes,  our_classes, their_classes, all_classes) {
-    if (select_our_classes) {
-      add_class_to_classes("hidden", their_classes);
-      add_class_to_classes("hidden", all_classes);
-      remove_class_from_classes("hidden", our_classes);
-    } else {
-      add_class_to_classes("hidden", their_classes);
-      add_class_to_classes("hidden", our_classes);
-      remove_class_from_classes("hidden", all_classes);
-    }
-  };
-
   var getSiblings = function(el, filter) {
     var siblings = [];
     el = el.parentNode.firstChild;
@@ -236,11 +233,27 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   var count_occurences_of_classes = function(el, classes) {
+    var i;
     var sum=0;
-    for (var i=0; i < classes.length; i++) {
-      sum += el.getElementsByClassName(classes[i]).length;
+    if (Array.isArray(el)) {
+      for (i=0; i < el.length; i++) {
+        sum += count_occurences_of_classes(el[i],classes);
+      }
+    } else if ((HTMLCollection.prototype.isPrototypeOf(el)) || (NodeList.prototype.isPrototypeOf(el))) {
+      sum += count_occurences_of_classes(Array.prototype.slice.call(el), classes);
+    } else if (hasClassList(el)) {
+      for (i=0; i < classes.length; i++) {
+        if (el.classList.contains(classes[i])) { sum += 1; }
+        sum += el.getElementsByClassName(classes[i]).length;
+      }
     }
+
     return sum;
+  };
+
+  var limit_results = function(results, n,result_classes){
+    var matched_results = results.querySelectorAll('.'+result_classes.join(', .'));
+    return Array.prototype.slice.call(matched_results).slice(-1*n);
   };
 
   var menu_toggle = function() {
@@ -289,11 +302,75 @@ document.addEventListener("DOMContentLoaded", function() {
   var team_row = function(team) { return regulation_overtime_wins(team.getElementsByClassName("results")[0], row_wins);};
   var team_home_row = function(team) { return regulation_overtime_wins(team.getElementsByClassName("results")[0], home_row );};
   var team_away_row = function(team) { return regulation_overtime_wins(team.getElementsByClassName("results")[0], away_row );};
+  var displayed_team_pts = function(team) { return pts(displayed_games(team), win_classes, extra_time_loss_classes);};
+  var displayed_team_row = function(team) { return regulation_overtime_wins(displayed_games(team), row_wins);};
+  var displayed_team_record = function(team) { return record(displayed_games(team), win_classes, loss_classes, extra_time_loss_classes); };
+  var displayed_team_record_with_row = function(team) { return record_with_row(displayed_games(team), win_classes, loss_classes, extra_time_loss_classes, row_wins); };
+  var last_5_team_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 5, win_classes.concat(loss_classes).concat(extra_time_loss_classes)),
+      win_classes,
+      extra_time_loss_classes);};
+  var last_5_team_home_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 5, home_wins.concat(home_losses).concat(home_otl)),
+      home_wins,
+      home_otl);};
+  var last_5_team_away_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 5, away_wins.concat(away_losses).concat(away_otl)),
+      away_wins,
+      away_otl);};
+  var last_5_team_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 5, win_classes.concat(loss_classes).concat(extra_time_loss_classes)),
+      win_classes,
+      extra_time_loss_classes);};
+  var last_5_team_home_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 5, home_wins.concat(home_losses).concat(home_otl)),
+      home_wins,
+      home_otl);};
+  var last_5_team_away_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 5, away_wins.concat(away_losses).concat(away_otl)),
+      away_wins,
+      away_otl);};
+  var last_10_team_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 10, win_classes.concat(loss_classes).concat(extra_time_loss_classes)),
+      win_classes,
+      extra_time_loss_classes);};
+  var last_10_team_home_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 10, home_wins.concat(home_losses).concat(home_otl)),
+      home_wins,
+      home_otl);};
+  var last_10_team_away_pts = function(team) {
+    return pts(
+      limit_results(team.getElementsByClassName("results")[0], 10, away_wins.concat(away_losses).concat(away_otl)),
+      away_wins,
+      away_otl);};
+  var last_10_team_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 10, win_classes.concat(loss_classes).concat(extra_time_loss_classes)),
+      win_classes,
+      extra_time_loss_classes);};
+  var last_10_team_home_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 10, home_wins.concat(home_losses).concat(home_otl)),
+      home_wins,
+      home_otl);};
+  var last_10_team_away_row = function(team) {
+    return regulation_overtime_wins(
+      limit_results(team.getElementsByClassName("results")[0], 10, away_wins.concat(away_losses).concat(away_otl)),
+      away_wins,
+      away_otl);};
 
   var default_sort_functions= [team_pts, team_row];
 
   var sorted_teams = function(teams, sort_functions) {  //sort_functions are functions to run on team_results to sort
-    if (HTMLCollection.prototype.isPrototypeOf(teams)) {
+    if ((HTMLCollection.prototype.isPrototypeOf(teams)) || (NodeList.prototype.isPrototypeOf(teams))) {
       teams = Array.prototype.slice.call(teams);
     }
     sort_functions = default_for(sort_functions, default_sort_functions);
@@ -326,9 +403,29 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   };
 
-  var home_resort= function() { resort_teams([team_home_pts,team_home_row]); };
-  var away_resort= function() { resort_teams([team_away_pts,team_away_row]); };
-  var last_resort_function=resort_teams;
+  var home_resort = function() { resort_teams([team_home_pts,team_home_row]); };
+  var away_resort = function() { resort_teams([team_away_pts,team_away_row]); };
+  var last_5_resort = function () { resort_teams([last_5_team_pts,last_5_team_row]);};
+  var last_10_resort = function () { resort_teams([last_10_team_pts, last_10_team_row]);};
+  var last_5_home_resort = function () { resort_teams([last_5_team_home_pts, last_5_team_home_row]);};
+  var last_5_away_resort = function () { resort_teams([last_5_team_away_pts, last_5_team_away_row]);};
+  var last_10_home_resort = function () { resort_teams([last_10_team_home_pts, last_10_team_home_row]);};
+  var last_10_away_resort = function () { resort_teams([last_10_team_away_pts, last_10_team_away_row]);};
+  var last_resort_function = resort_teams;
+  var last_n_windowing = undefined;  // undefined for none or int value of n
+
+  var resort_function_from_string = function(sort_name) {
+    return { "" : resort_teams,
+             "home" : home_resort,
+             "away" : away_resort,
+             "last_5" : last_5_resort,
+             "last_10" : last_10_resort,
+             "last_5_home" : last_5_home_resort,
+             "last_5_away" : last_5_away_resort,
+             "last_10_home" : last_10_home_resort,
+             "last_10_away" : last_10_away_resort
+           }[sort_name];
+  };
 
   var resort_listener_template = function(self,resort_function) {
     resort_function();
@@ -336,41 +433,89 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("home_away_select").classList.remove("sort_selected");
     document.getElementById("home_select").classList.remove("sort_selected");
     document.getElementById("away_select").classList.remove("sort_selected");
-    if (resort_function == home_resort) {
+    document.getElementById("last_5_select").classList.remove("sort_selected");
+    document.getElementById("last_10_select").classList.remove("sort_selected");
+    if ((resort_function == home_resort) ||
+        (resort_function == last_5_home_resort) ||
+        (resort_function == last_10_home_resort)) {
       document.getElementById("home_select").classList.add("sort_selected");
-    } else if (resort_function == away_resort){
+    } else if ((resort_function == away_resort) ||
+               (resort_function == last_5_away_resort) ||
+               (resort_function == last_10_away_resort)) {
       document.getElementById("away_select").classList.add("sort_selected");
-    } else if (resort_function == resort_teams){
+    } else if ((resort_function == resort_teams) ||
+               (resort_function == last_5_resort) ||
+               (resort_function == last_10_resort)) {
       document.getElementById("home_away_select").classList.add("sort_selected");
     }
+    if ((resort_function == last_5_resort) ||
+        (resort_function == last_5_home_resort) ||
+        (resort_function == last_5_away_resort)) {
+      document.getElementById("last_5_select").classList.add("sort_selected");
+    } else if ((resort_function == last_10_resort) ||
+               (resort_function == last_10_home_resort) ||
+               (resort_function == last_10_away_resort)) {
+      document.getElementById("last_10_select").classList.add("sort_selected");
+    }
+
     self.remove();
   };
 
+  var current_resort_function = function () {
+    var selected_elements =[];
+    if (document.getElementById("last_5_select").classList.contains("selected")) { selected_elements.push("last_5"); }
+    if (document.getElementById("last_10_select").classList.contains("selected")) { selected_elements.push("last_10"); }
+    if (document.getElementById("home_select").classList.contains("selected")) { selected_elements.push("home"); }
+    if (document.getElementById("away_select").classList.contains("selected")) { selected_elements.push("away"); }
+    return resort_function_from_string(selected_elements.join("_"));
+  };
 
-  var home_away_toggle = function( self, our_classes, their_classes, exc_our_classes, exc_their_classes, exc_all_classes, resort_function ) {
+  var add_resort_element = function (container_el) {
+    var current_func = current_resort_function();
+    if (last_resort_function != current_func ) {
+      var resort_div = create_div(["resort_select"],"Re-Sort");
+      container_el.appendChild(resort_div);
+      var resort_listener_function = function() { var self = this; resort_listener_template(self,current_func);};
+      resort_div.addEventListener("click",resort_listener_function,false);
+    }
+  };
+
+  var update_team_details = function() {
+    var i;
+    var record_function;
+    var teams = document.getElementsByClassName("team");
+    if ( teams[0].getElementsByClassName("record")[0].classList.contains("record_with_row")) {
+      record_function = displayed_team_record_with_row;
+    } else {
+      record_function = displayed_team_record;
+    }
+
+    var record_element;
+    for (i=0; i < teams.length; i++) {
+      record_element = teams[i].getElementsByClassName("record")[0];
+      record_element.innerHTML = record_function(teams[i]);
+
+      record_element = teams[i].getElementsByClassName("pts")[0];
+      record_element.innerHTML = displayed_team_pts(teams[i]);
+    }
+  };
+
+  var home_away_toggle = function( self, our_classes, their_classes ) {
     var select_our_classes = !(self.classList.contains("selected"));
     hidden_toggle(select_our_classes, our_classes, their_classes);
-    exclusive_hidden_toggle(select_our_classes, exc_our_classes, exc_their_classes, exc_all_classes);
+    if (last_n_windowing != undefined) {
+      show_hidden_n_games();
+      last_n_games(last_n_windowing);
+    };
+    update_team_details();
     var siblings = getSiblings(self, hasClassList);
     for (var i=0; i < siblings.length; i++) {
       siblings[i].classList.remove("selected");
     }
-    var resort_div;
-    var reset_teams = function() { var self = this; resort_listener_template(self,resort_teams);};
-    if (select_our_classes) {
-      remove_resort_element(self.parentElement);
-      self.classList.add("selected");
-      resort_div = create_div(["resort_select"],"Re-Sort");
-      self.parentElement.appendChild(resort_div);
-      resort_div.addEventListener("click",resort_function,false);
-    } else {
-      remove_resort_element(self.parentElement);
-      if (last_resort_function != resort_teams) {
-        resort_div = create_div(["resort_select"],"Re-Sort");
-        self.parentElement.appendChild(resort_div);
-        resort_div.addEventListener("click",reset_teams,false);
-      }
-    }
+
+    if (select_our_classes) { self.classList.add("selected"); }
+    remove_resort_element(self.parentElement);
+    add_resort_element(self.parentElement);
   };
 
   var home_select = document.getElementById("home_select");
@@ -378,14 +523,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
   var home_toggle =  function(){
     var self = this;
-    var resort_function = function() { var self = this; resort_listener_template(self, home_resort);};
-    home_away_toggle(self, home_classes, away_classes.concat(all_classes), exc_home_classes, exc_away_classes, exc_all_classes, resort_function);
+    home_away_toggle(self, home_classes, away_classes.concat(all_classes));
   };
 
   var away_toggle =  function(){
     var self = this;
-    var resort_function = function() { var self = this; resort_listener_template(self, away_resort);};
-    home_away_toggle(self, away_classes, home_classes.concat(all_classes), exc_away_classes, exc_home_classes, exc_all_classes,resort_function);
+    home_away_toggle(self, away_classes, home_classes.concat(all_classes));
   };
 
   home_select.addEventListener("click", home_toggle, false);
@@ -394,17 +537,11 @@ document.addEventListener("DOMContentLoaded", function() {
   var row_toggle = function() {
     var i;
     var record_function;
-    var home_record_function;
-    var away_record_function;
     var selector_element = this;
     if ( selector_element.classList.contains("selected")) {
-      record_function = team_record;
-      home_record_function = team_home_record;
-      away_record_function = team_away_record;
+      record_function = displayed_team_record;
     } else {
-      record_function = team_record_with_row;
-      home_record_function = team_home_record_with_row;
-      away_record_function = team_away_record_with_row;
+      record_function = displayed_team_record_with_row;
     }
     selector_element.classList.toggle("selected");
 
@@ -413,14 +550,6 @@ document.addEventListener("DOMContentLoaded", function() {
     for (i=0; i < teams.length; i++) {
       record_element = teams[i].getElementsByClassName("record")[0];
       record_element.innerHTML = record_function(teams[i]);
-      record_element.classList.toggle("record_with_row");
-
-      record_element = teams[i].getElementsByClassName("home_record")[0];
-      record_element.innerHTML = home_record_function(teams[i]);
-      record_element.classList.toggle("record_with_row");
-
-      record_element = teams[i].getElementsByClassName("away_record")[0];
-      record_element.innerHTML = away_record_function(teams[i]);
       record_element.classList.toggle("record_with_row");
     }
   };
@@ -707,4 +836,64 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("tomorrow_select").addEventListener("click", tomorrows_games_toggle, false);
   document.getElementById("yesterday_select").addEventListener("click", yesterdays_games_toggle, false);
 
+  var last_n_games = function(n) {
+    var i,j;
+    var teams = document.getElementsByClassName("team");
+    var games;
+    add_class_to_classes("last_n_hidden",
+                         home_incomplete.concat(away_incomplete).concat(["game_divider"]),
+                         document.getElementById("league"));
+    for (i = 0; i < teams.length; i++) {
+      games = teams[i].querySelectorAll(".results > svg[class*=game_]:not(.hidden):not(.last_n_hidden)");
+      games = Array.prototype.slice.call(games);
+      games = games.sort(function(a,b){
+        var bout_a =a.getAttribute("class").split(" ").find(function (el) {
+          return el.indexOf("bout_") >= 0;
+        });
+        var bout_b =b.getAttribute("class").split(" ").find(function (el) {
+          return el.indexOf("bout_") >= 0;
+        });
+        return parseInt(bout_a.slice(bout_a.indexOf("_")+1)) - parseInt(bout_b.slice(bout_b.indexOf("_")+1));
+      });
+      for (j = 0; j < (games.length - n); j++) {
+        games[j].classList.add("last_n_hidden");
+      }
+    }
+  };
+
+  var show_hidden_n_games = function() {
+    var result_svgs = document.querySelectorAll(".results > svg");
+    result_svgs = Array.prototype.slice.call(result_svgs);
+    for (var i=0; i<result_svgs.length; i++) {
+      result_svgs[i].classList.remove("last_n_hidden");
+    }
+  };
+
+  var last_n_toggle = function(self,n) {
+    var toggle_selected = !(self.classList.contains("selected"));
+    var siblings = getSiblings(self, hasClassList);
+    for (var i=0; i < siblings.length; i++) {
+      siblings[i].classList.remove("selected");
+    }
+    show_hidden_n_games();
+    if (toggle_selected) {
+      last_n_games(n);
+      last_n_windowing = n;
+      self.classList.add("selected");
+    } else {
+      last_n_windowing = undefined;
+      show_hidden_n_games();
+    }
+    update_team_details();
+
+    var home_away_select = document.getElementById("home_away_select");
+    remove_resort_element(home_away_select);
+    add_resort_element(home_away_select);
+  };
+
+  var last_5_toggle = function() { var self = this; last_n_toggle(self, 5) };
+  var last_10_toggle = function() { var self = this; last_n_toggle(self, 10) };
+
+  document.getElementById("last_5_select").addEventListener("click", last_5_toggle, false);
+  document.getElementById("last_10_select").addEventListener("click", last_10_toggle, false);
 });

@@ -87,16 +87,8 @@
         (enlive/content (teams/team-name team-id)))
   [:div.pts] (enlive/do->
         (enlive/content (str (games/team-total-points team-id season season-part))))
-  [:div.home_pts] (enlive/do->
-        (enlive/content (str (games/team-home-points team-id season season-part))))
-  [:div.away_pts] (enlive/do->
-        (enlive/content (str (games/team-away-points team-id season season-part))))
   [:div.record] (enlive/do->
         (enlive/content (string/join "-" (games/team-record team-id season season-part))))
-  [:div.home_record] (enlive/do->
-        (enlive/content (string/join "-" (games/team-home-record team-id season season-part))))
-  [:div.away_record] (enlive/do->
-        (enlive/content (string/join "-" (games/team-away-record team-id season season-part))))
   [:div.results] (enlive/do->
         (apply enlive/content
           (interpose game-divider
