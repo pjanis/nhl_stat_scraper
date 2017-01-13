@@ -46,7 +46,7 @@ header a{
 header #display_options_menu{
   position: absolute;
   width:200px;
-  right:0px;
+  right:10px;
   top:0px;
   background-color: #FFFFFF;
 }
@@ -100,6 +100,16 @@ header #key_sub_menu .key_item {
 .home_incomplete,.away_incomplete
 {
   background-color: #999999;
+}
+
+.home_incomplete.game_behind_first,.away_incomplete.game_behind_first
+{
+  background-color: #4C3A3A;
+}
+
+.home_incomplete.game_behind_previous,.away_incomplete.game_behind_previous
+{
+  background-color: #87000D;
 }
 
 .home_upcoming,.away_upcoming

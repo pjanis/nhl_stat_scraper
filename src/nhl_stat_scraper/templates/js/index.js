@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   var limit_results = function(results, n,result_classes){
-    var matched_results = results.querySelectorAll('.'+result_classes.join(', .'));
+    var matched_results = results.querySelectorAll("."+result_classes.join(", ."));
     return Array.prototype.slice.call(matched_results).slice(-1*n);
   };
 
@@ -506,14 +506,21 @@ document.addEventListener("DOMContentLoaded", function() {
     if (last_n_windowing != undefined) {
       show_hidden_n_games();
       last_n_games(last_n_windowing);
-    };
+    }
     update_team_details();
     var siblings = getSiblings(self, hasClassList);
     for (var i=0; i < siblings.length; i++) {
       siblings[i].classList.remove("selected");
     }
 
-    if (select_our_classes) { self.classList.add("selected"); }
+    if (select_our_classes) {
+      self.classList.add("selected");
+      document.getElementById("games_behind_select").classList.remove("selected");
+      document.getElementById("games_behind_select").classList.add("hidden");
+      remove_games_behind();
+    } else if (last_n_windowing === undefined) {
+      document.getElementById("games_behind_select").classList.remove("hidden");
+    }
     remove_resort_element(self.parentElement);
     add_resort_element(self.parentElement);
   };
@@ -690,6 +697,10 @@ document.addEventListener("DOMContentLoaded", function() {
       remove_divisions();
       selector_element.classList.add("selected");
     }
+    if (document.getElementById("games_behind_select").classList.contains("selected")) {
+      remove_games_behind();
+      show_games_behind();
+    }
   };
 
   var league_toggle = function() {
@@ -706,6 +717,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     if (select_our_element) {
       selector_element.classList.add("selected");
+    }
+    if (document.getElementById("games_behind_select").classList.contains("selected")) {
+      remove_games_behind();
+      show_games_behind();
     }
   };
 
@@ -859,6 +874,12 @@ document.addEventListener("DOMContentLoaded", function() {
         games[j].classList.add("last_n_hidden");
       }
     }
+
+    //remove all games behind classes
+    remove_games_behind();
+    document.getElementById("games_behind_select").classList.remove("selected");
+    document.getElementById("games_behind_select").classList.add("hidden");
+
   };
 
   var show_hidden_n_games = function() {
@@ -883,6 +904,9 @@ document.addEventListener("DOMContentLoaded", function() {
     } else {
       last_n_windowing = undefined;
       show_hidden_n_games();
+      if ( document.getElementById("home_away_select").classList.contains("sort_selected")) {
+        document.getElementById("games_behind_select").classList.remove("hidden");
+      }
     }
     update_team_details();
 
@@ -891,9 +915,91 @@ document.addEventListener("DOMContentLoaded", function() {
     add_resort_element(home_away_select);
   };
 
-  var last_5_toggle = function() { var self = this; last_n_toggle(self, 5) };
-  var last_10_toggle = function() { var self = this; last_n_toggle(self, 10) };
+  var last_5_toggle = function() { var self = this; last_n_toggle(self, 5); };
+  var last_10_toggle = function() { var self = this; last_n_toggle(self, 10); };
 
   document.getElementById("last_5_select").addEventListener("click", last_5_toggle, false);
   document.getElementById("last_10_select").addEventListener("click", last_10_toggle, false);
+
+
+  var games_behind = function(team, better_team) {
+    return Math.ceil((team_pts(better_team) - team_pts(team))/2);
+  };
+
+  var show_games_behind = function() {
+    var i,j,k;
+    var teams_sets = document.getElementsByClassName("teams");
+    var teams;
+    for (i=0; i < teams_sets.length; i++) {
+      teams = teams_sets[i].getElementsByClassName("team");
+      var ordered_teams = sorted_teams(teams);
+      var first_team = ordered_teams[0];
+      var previous_team = first_team;
+      var games_behind_first;
+      var games_behind_previous;
+      var team_incomplete;
+      var team;
+      for (j=1; j<ordered_teams.length; j++) {
+        team = ordered_teams[j];
+        games_behind_first = games_behind(team,first_team);
+        games_behind_previous = games_behind(team,previous_team);
+        team_incomplete = Array.prototype.slice.call(
+          team.querySelectorAll(
+            [".results > svg.home_incomplete:not(.game_divider)",
+              ".results > svg.home_upcoming:not(.game_divider)",
+              ".results > svg.away_incomplete:not(.game_divider)",
+              ".results > svg.away_upcoming:not(.game_divider)"].join(", ")));
+        team_incomplete = team_incomplete.sort(function(a,b){
+          var bout_a =a.getAttribute("class").split(" ").find(function (el) {
+            return el.indexOf("bout_") >= 0;
+          });
+          var bout_b =b.getAttribute("class").split(" ").find(function (el) {
+            return el.indexOf("bout_") >= 0;
+          });
+          return parseInt(bout_a.slice(bout_a.indexOf("_")+1)) - parseInt(bout_b.slice(bout_b.indexOf("_")+1));
+        });
+        for (k=0; k < games_behind_previous; k++) {
+          if ( team_incomplete.length > games_behind_previous ) {
+            team_incomplete[team_incomplete.length - k - 1].classList.add("game_behind_previous");
+          } else if ( team_incomplete.length > ( games_behind_previous - k ) ) {
+            team_incomplete[team_incomplete.length - k - 1].classList.add("game_behind_previous_limited");
+          }
+        }
+        for (k=0; k < ( games_behind_first - games_behind_previous); k++) {
+          if ( team_incomplete.length > games_behind_first ) {
+            team_incomplete[team_incomplete.length - k - 1 - games_behind_previous].classList.add("game_behind_first");
+          } else if ( team_incomplete.length > ( games_behind_first - k ) ) {
+            team_incomplete[team_incomplete.length - k - 1 - games_behind_previous].classList.add("game_behind_first_limited");
+          }
+        }
+        previous_team = team;
+      }
+    }
+  };
+
+  var remove_games_behind = function() {
+    var result_svgs = document.querySelectorAll(".results > svg");
+    result_svgs = Array.prototype.slice.call(result_svgs);
+    for (var i=0; i<result_svgs.length; i++) {
+      result_svgs[i].classList.remove("game_behind_previous");
+      result_svgs[i].classList.remove("game_behind_previous_limited");
+      result_svgs[i].classList.remove("game_behind_first");
+      result_svgs[i].classList.remove("game_behind_first_limited");
+    }
+  };
+
+  var games_behind_toggle = function () {
+    var self = this;
+    var add_games_behind = !(self.classList.contains("selected"));
+    if (add_games_behind) {
+      show_games_behind();
+    } else {
+      remove_games_behind();
+    }
+
+    self.classList.toggle("selected");
+  };
+
+  document.getElementById("games_behind_select").addEventListener("click",games_behind_toggle, false);
+
 });
