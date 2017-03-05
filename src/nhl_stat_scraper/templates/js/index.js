@@ -961,14 +961,14 @@ document.addEventListener("DOMContentLoaded", function() {
         for (k=0; k < games_behind_previous; k++) {
           if ( team_incomplete.length > games_behind_previous ) {
             team_incomplete[team_incomplete.length - k - 1].classList.add("game_behind_previous");
-          } else if ( team_incomplete.length > ( games_behind_previous - k ) ) {
+          } else if ( team_incomplete.length > k ) {
             team_incomplete[team_incomplete.length - k - 1].classList.add("game_behind_previous_limited");
           }
         }
         for (k=0; k < ( games_behind_first - games_behind_previous); k++) {
           if ( team_incomplete.length > games_behind_first ) {
             team_incomplete[team_incomplete.length - k - 1 - games_behind_previous].classList.add("game_behind_first");
-          } else if ( team_incomplete.length > ( games_behind_first - k ) ) {
+          } else if ( team_incomplete.length > ( games_behind_previous + k ) ) {
             team_incomplete[team_incomplete.length - k - 1 - games_behind_previous].classList.add("game_behind_first_limited");
           }
         }

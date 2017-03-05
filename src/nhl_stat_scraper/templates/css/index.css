@@ -102,7 +102,8 @@ header #key_sub_menu .key_item {
   background-color: #999999;
 }
 
-.home_incomplete.game_behind_first,.away_incomplete.game_behind_first
+.home_incomplete.game_behind_first,.away_incomplete.game_behind_first,
+.home_incomplete.game_behind_first_limited,.away_incomplete.game_behind_first_limited
 {
   background-color: #4C3A3A;
 }
