@@ -1,15 +1,20 @@
 (ns nhl-stat-scraper.common.parse
   (:refer-clojure :exclude [slurp])
-  (:require [clojure.string :as string]
+  (:require [clojure.data.json :as json]
+            [clojure.string :as string]
             [clj-time.core]
             [clj-time.format]
             [dire.core]))
 
+;at compile time
 (defmacro slurp [file]
-    (clojure.core/slurp file))
+  (clojure.core/slurp file))
+
+(defn slurp-json [file]
+  (json/read-str (clojure.core/slurp file)))
 
 (defn parse-int [s]
-    (Integer/parseInt (re-find #"\A-?\d+" s)))
+  (Integer/parseInt (re-find #"\A-?\d+" s)))
 
 (defn us-date-str-to-iso-date-str [date-str]
   (let [raw-date (string/split date-str #"/")]
@@ -43,3 +48,8 @@
 (defn clean-input-string [raw-string]
   (-> raw-string
     (clojure.string/replace "\u00A0" "\u0020")))
+
+;; https://gist.github.com/maio/e5f85d69c3f6ca281ccd
+(defn remove-accents [raw-string]
+  (let [normalized (java.text.Normalizer/normalize raw-string java.text.Normalizer$Form/NFD)]
+    (clojure.string/replace normalized #"\p{InCombiningDiacriticalMarks}+" "")))

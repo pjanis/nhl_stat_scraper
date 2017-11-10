@@ -41,15 +41,14 @@
 
 (defn bootstrap-all []
   (migrate)
-  (db-populate/populate-teams)
+  (db-populate/populate-league-structure)
   (db-populate/populate-team-colors)
-  (db-populate/populate-divisions)
-  (db-populate/populate-conferences)
-  (db-populate/populate-division-teams)
-  (db-populate/populate-conference-teams)
-  (db-populate/populate-game-summaries)
-  (db-populate/populate-all-game-details)
+  (db-populate/populate-season-game-summaries 2017)
   (run-corrections!))
+
+(defn update-structure []
+  (migrate)
+  (db-populate/update-league-structure))
 
 (defn bootstrap [options]  ;TODO add season options
   (bootstrap-all))
@@ -62,7 +61,7 @@
   ["-s" "--season YEAR" "Season to update"
     :default 2016 ;TODO make smart year look up for spring/fall
     :parse-fn #(Integer/parseInt %)
-    :validate [#(< 2013 % 2017) "Must be between 2013 and 2017"]]
+    :validate [#(< 2013 % 2018) "Must be between 2013 and 2017"]]
   ["-d" "--directory DIR" "Site's root directory"
     :default "public/"]
   ["-h" "--help"]])
@@ -80,6 +79,7 @@
     "  rollback          Rollback one migration"
     "  bootstrap         Setup database and fetch all data"
     "  populate-season   Adds season game summaries to database (must be run once to make update possible)"
+    "  update-structure  Adds seasons to teams, divisions, and conferences"
     "  run-corrections   Run database corrections"
     "  update-standings  Update standing information and create new index files"
     "  update-play-data  Updates all play, shift, and roster data"
@@ -110,6 +110,7 @@
       "populate-season" (populate-season options)
       "run-corrections" (run-corrections!)
       "update-standings" (update-standings options)
+      "update-structure" (update-structure)
       "update-play-data" (update-play-data options)
       (exit 1 (usage summary)))))
 

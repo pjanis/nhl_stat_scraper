@@ -1,0 +1,11 @@
+{:up ["ALTER TABLE teams ALTER COLUMN common_name DROP NOT NULL;",
+      "ALTER TABLE teams ALTER COLUMN abreviation DROP NOT NULL;",
+      "ALTER TABLE teams DROP CONSTRAINT teams_abreviation_key",
+      "ALTER TABLE teams DROP CONSTRAINT teams_common_name_key",
+      "ALTER TABLE teams DROP CONSTRAINT teams_name_key"]
+ :down ["ALTER TABLE teams ALTER COLUMN common_name SET NOT NULL;",
+        "ALTER TABLE teams ALTER COLUMN abreviation SET NOT NULL;",
+        "ALTER TABLE teams ADD CONSTRAINT teams_abreviation_key UNIQUE (abreviation)",
+        "ALTER TABLE teams ADD CONSTRAINT teams_common_name_key UNIQUE (common_name)",
+        "ALTER TABLE teams ADD CONSTRAINT teams_name_key UNIQUE (name)"]
+ }

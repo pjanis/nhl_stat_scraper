@@ -1,0 +1,2 @@
+{:up ["ALTER TABLE division_teams ADD COLUMN seasons_active int4range;"]
+ :down [ "ALTER TABLE division_teams DROP COLUMN seasons_active;"]}

@@ -3,22 +3,24 @@
     [clojure.java.jdbc :as jdbc]
     [clojure.string :as str]
     [clj-time.jdbc]
+    [clj-time.core]
+    [clj-time.coerce]
     [dire.core]
+    [nhl-stat-scraper.database.ranged :as db-ranged]
     [nhl-stat-scraper.database.postgres :as db-pg]))
 
 (defn today []
   (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (new java.util.Date)))
 
 (defn team-players
-  "Returns player db ids"
-  ([team-id] (team-players team-id (today)))
+  "Returns player_team for team and dates"
+  ([team-id] (team-players team-id (new java.util.Date)))
   ([team-id date] (team-players team-id date db-pg/pg-datasource))
   ([team-id date datasource]
-    (jdbc/query datasource
-                [(format "SELECT player_id FROM player_teams
-                            WHERE team_id=%d
-                            AND (start_date <= '%s' OR start_date is NULL)
-                            AND (stop_date >= '%s' OR stop_date is NULL)" team-id date date)])))
+    (db-ranged/get-all-by-ranged-and-values {"player_teams.dates" (db-ranged/to-date date)}
+                                            {"team_id" team-id}
+                                            "player_teams"
+                                            datasource)))
 
 (defn team-player-names
   "Returns all player_id, player_number, and player_name"

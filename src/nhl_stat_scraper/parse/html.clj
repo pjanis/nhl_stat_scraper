@@ -13,12 +13,13 @@
 (dire.core/with-handler! #'fetch-url
   java.io.FileNotFoundException
   (fn [e & args ] (do (timbre/warn (str "File Not Found: " (first args))) nil)))
-  
+
 (dire.core/with-handler! #'fetch-url
   java.io.IOException
   (fn [e & args ] (do (timbre/warn (str "File Forbidden: " (first args))) nil)))
 
 (def wikipedia-nhl-url "https://en.wikipedia.org/wiki/National_Hockey_League")
+(defn wikipedia-season-url [season] (str "https://en.wikipedia.org/wiki/" season "%E2%80%93" (+ (mod season 100) 1) "_NHL_season"))
 
 (defn wikipedia-team-urls []
   (-> (fetch-url wikipedia-nhl-url)
@@ -35,6 +36,20 @@
                 :team (string/lower-case (enlive/text %))
                 :wiki-url (format "https://en.wikipedia.org%s" (get-in % [:attrs :href])))))
   ))
+
+(defn wikipedia-infobox-row-header [row]
+  (-> row
+      (enlive/select [:th])
+      (first)
+      (get :content)
+      (->> (apply str))))
+
+(defn wikipedia-season-dates [season]
+  (-> season
+      (wikipedia-season-url)
+      (fetch-url)
+      (enlive/select [:table.infobox :tr])
+      (->> (map #(wikipedia-infobox-row-header %)))))
 
 (defn team-infobox-rows [team-wiki-url]
   (-> (fetch-url team-wiki-url)
@@ -235,8 +250,8 @@
 
 
 (defn plays-cell-player-numbers [cell]
-  (remove empty? 
-          (map 
+  (remove empty?
+          (map
             (fn [cell-content] (first (:content cell-content)))
             (enlive/select cell [:font]))))
 
@@ -295,12 +310,15 @@
   [play-description]
   (let [team-abreviation (last (re-find #"^([\w.]{3})" play-description))]
     (if (some? team-abreviation)
-      ((db-teams/find-team-by-abreviation team-abreviation) :db_id)
+      ;TODO handle seasons in plays
+      ;((db-teams/find-team-by-abreviation team-abreviation) :db_id)
+      nil
       nil)))
 
 (defn play-player-and-team-ids [play-description]
   (map (fn [[full-match team-abreviation player-number]]
-         (let [team-id (:db_id (db-teams/find-team-by-abreviation team-abreviation))]
+         ;TODO fix with seasons
+         (let [team-id (:db_id (db-teams/get-team-by-abreviation-and-season team-abreviation 2016))]
            [(db-players/player-id-by-team-and-number team-id (common-parse/parse-int player-number))
             team-id]))
        (re-seq #"([\w.]{3}) #(\d+)" play-description)))
@@ -314,7 +332,8 @@
   (let [team-abreviation (last (re-find #"^([\w.]{3})" play-description))
         player-number (last (re-find #"#(\d+)" play-description))]
     (if (and (some? team-abreviation) (some? player-number))
-      (let [team-id (:db_id (db-teams/find-team-by-abreviation team-abreviation))]
+      ;TODO fix with seasons
+      (let [team-id (:db_id (db-teams/get-team-by-abreviation-and-season team-abreviation 2016))]
         [(db-players/player-id-by-team-and-number team-id (common-parse/parse-int player-number))
         team-id])
       nil)))
@@ -334,7 +353,8 @@
 
 (defn play-winning-team-id [play-description]
   (if-let [winning-team-abreviation (last (re-find #"(\w{3}) won" play-description))]
-         (:db_id (db-teams/find-team-by-abreviation winning-team-abreviation))
+        ;TODO fix with seasons
+         (:db_id (db-teams/get-team-by-abreviation-and-season winning-team-abreviation 2016))
          nil))
 
 (defn play-penalty-description [play-description]

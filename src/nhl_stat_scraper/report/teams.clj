@@ -2,6 +2,7 @@
   (:require [nhl-stat-scraper.database.teams :as db-teams]
             [nhl-stat-scraper.database.games :as db-games]))
 
+(def default-season 2016) ;temporary until config defaults are added.
 
 (defn list-unique-remap
   "Remaps the list (of maps) to a map with keys determined by map-key. Map-key values must be unique to prevent being overriden"
@@ -18,34 +19,21 @@
   (let [id-maps (map #(list-unique-remap % :db_id) teams-lists)]
     (vals (apply merge-with merge id-maps))))
 
-(defn conference-teams []
-  (list-remap (join-teams (db-teams/db-teams) (db-teams/divisions) (db-teams/conferences)) :conference))
 
-(defn conference-division-teams []
-  (reduce (fn [remapped [conference teams]]
-            (assoc remapped conference (list-remap teams :division)))
-          {}
-          (conference-teams)))
-
-(defn html-conference-division-teams []
-  (let [cdt (conference-division-teams)
-        conferences (keys cdt)]
+(defn html-conference-division-teams [season datasource]
+  (let [teams-plus (db-teams/get-teams-by-season-with-division-and-conference season datasource)
+        team-conferences (group-by #(get % :conference_name) teams-plus)]
     (map (fn [conference]
            (hash-map :conference-name conference
-                     :conference-divisions (map (fn [division]
+                     :conference-divisions (let [team-divisions (group-by #(get % :division_name) (get team-conferences conference))]
+                                            (map (fn [division]
                                                   (hash-map :division-name division
                                                             :division-teams (map (fn [team]
                                                                                    (clojure.set/rename-keys team {:name :team-name
                                                                                                                   :db_id :team-id}))
-                                                                                 (get-in cdt [conference division]))))
-                                                (keys (get cdt conference)))))
-         conferences)))
+                                                                                 (get team-divisions division))))
+                                                (keys team-divisions)))))
+         (keys team-conferences))))
 
 (defn team-name [team-id]
   (db-teams/team-name team-id))
-
-(defn conference [team-id]
-  (db-teams/conference team-id))
-
-(defn division [team-id]
-  (db-teams/division team-id))

@@ -5,6 +5,7 @@
             [clj-time.core]
             [clj-time.local]
             [nhl-stat-scraper.common.parse :as common-parse]
+            [nhl-stat-scraper.database.postgres :as db-pg]
             [nhl-stat-scraper.report.teams :as teams]
             [nhl-stat-scraper.report.games :as games]))
 
@@ -155,6 +156,7 @@
 (defn write-teams-to-index
   ([index-template index-data] (write-teams-to-index index-template index-data "public/index.html"))
   ([index-template index-data file-path]
+    (io/make-parents file-path)
     (with-open [wrtr (io/writer (io/file file-path))]
       (doseq [line (index-template index-data)]
         (.write wrtr line)))))
@@ -186,7 +188,12 @@
 (defn create-index ;rewrite to standings
   ([] (create-index 2015 "regular" "public/2015/index.html"))
   ([season season-part file-path]
-    (write-teams-to-index index {:title "Standings" :conferences (teams/html-conference-division-teams) :season season :season-part season-part} file-path )))
+    (write-teams-to-index index
+                          {:title "Standings"
+                           :conferences (teams/html-conference-division-teams season db-pg/pg-datasource)
+                           :season season
+                           :season-part season-part}
+                          file-path )))
 
 (defn create-dev-index ;rewrite to standings
   ([] (create-dev-index 2015 "regular" (io/resource "public/2015/index.html")))

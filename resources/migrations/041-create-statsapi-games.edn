@@ -1,0 +1,6 @@
+{:up ["CREATE TABLE statsapi_games (
+        db_id SERIAL PRIMARY KEY,
+        game_id varchar(20) NOT NULL UNIQUE,
+        game_json JSONB);"]
+ :down ["DROP TABLE statsapi_games;"]
+}

@@ -2,6 +2,7 @@
   (:require
     [clojure.java.jdbc :as jdbc]
     [clojure.string :as str]
+    [clj-time.format]
     [nhl-stat-scraper.database.games :as db-games]
     [nhl-stat-scraper.database.teams :as db-teams]))
 
@@ -21,7 +22,7 @@
   (boolean (get game-summary :home_team_score)))
 
 (defn game-date-string [game-summary]
-  (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") (get game-summary :game_date)))
+  (clj-time.format/unparse (clj-time.format/formatters :date) (get game-summary :game_date)))
 
 (defn game-result [game-summary team-score-field other-team-score-field]
   (if (get game-summary :complete)
@@ -112,11 +113,11 @@
     (let [team-1-points (team-total-points team-1-id season season-part)
           team-2-points (team-total-points team-2-id season season-part)]
       (cond
-        (> team-1-points team-2-points) true 
+        (> team-1-points team-2-points) true
         (< team-1-points team-2-points) false
         (> (team-wins team-1-id season season-part) (team-wins team-2-id season season-part)) true
         (< (team-wins team-1-id season season-part) (team-wins team-2-id season season-part)) false
-        :else true)))) ;TODO add head-to-head and goal differential tie breakers 
+        :else true)))) ;TODO add head-to-head and goal differential tie breakers
 
 
 (defn html-teams-report
@@ -127,7 +128,7 @@
              (hash-map :db_id team-id
                        :record (team-record team-id season season-part)
                        :points (team-total-points team-id season season-part))))
-         (db-teams/db-teams))))
+         (db-teams/get-teams))))
 
 (defn game-state [game-summary]
   (cond

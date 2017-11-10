@@ -1,0 +1,8 @@
+{:up ["ALTER TABLE seasons ADD COLUMN dates daterange;",
+       "UPDATE seasons
+       SET dates = daterange(start_date, stop_date, '[]');",
+       "ALTER TABLE seasons DROP COLUMN start_date, DROP COLUMN stop_date;"]
+ :down ["ALTER TABLE seasons ADD COLUMN start_date DATE DEFAULT NULL, ADD COLUMN stop_date DATE DEFAULT NULL;",
+        "UPDATE seasons
+         SET start_date = lower(dates), stop_date = upper(dates) - 1;",
+        "ALTER TABLE seasons DROP COLUMN dates;"]}

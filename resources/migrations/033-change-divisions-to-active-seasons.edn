@@ -1,0 +1,8 @@
+{:up ["ALTER TABLE divisions ADD COLUMN seasons_active int4range;",
+       "UPDATE divisions
+       SET seasons_active = int4range(start_season, stop_season, '[]');",
+       "ALTER TABLE divisions DROP COLUMN start_season, DROP COLUMN stop_season;"]
+ :down ["ALTER TABLE divisions ADD COLUMN start_season INTEGER DEFAULT NULL, ADD COLUMN stop_season INTEGER DEFAULT NULL;",
+        "UPDATE divisions
+         SET start_season = lower(seasons_active), stop_season = upper(seasons_active) - 1;",
+        "ALTER TABLE divisions DROP COLUMN seasons_active;"]}

@@ -1,0 +1,872 @@
+{
+    "1942": {
+        "" : {
+            "": [
+                "boston",
+                "chicago",
+                "detroit",
+                "montreal",
+                "new york",
+                "toronto"
+            ]
+        }
+    },
+    "1967": {
+        "east": {
+            "": [
+                "boston",
+                "chicago",
+                "detroit",
+                "montreal",
+                "new york",
+                "toronto"
+            ]
+        },
+        "west": {
+            "": [
+                "minnesota",
+                "los angeles",
+                "oakland",
+                "philadelphia",
+                "pittsburgh",
+                "st louis"
+            ]
+        }
+    },
+    "1970": {
+        "east": {
+            "": [
+                "boston",
+                "buffalo",
+                "detroit",
+                "montreal",
+                "new york",
+                "toronto",
+                "vancouver"
+            ]
+        },
+        "west": {
+            "": [
+                "california",
+                "chicago",
+                "minnesota",
+                "los angeles",
+                "philadelphia",
+                "pittsburgh",
+                "st louis"
+            ]
+        }
+    },
+    "1972": {
+        "east": {
+            "": [
+                "boston",
+                "buffalo",
+                "detroit",
+                "montreal",
+                "ny islanders",
+                "ny rangers",
+                "toronto",
+                "vancouver"
+            ]
+        },
+        "west": {
+            "": [
+                "california",
+                "atlanta",
+                "chicago",
+                "minnesota",
+                "los angeles",
+                "philadelphia",
+                "pittsburgh",
+                "st louis"
+            ]
+        }
+    },
+    "1974": {
+        "wales": {
+            "adams": [
+                "california",
+                "boston",
+                "buffalo",
+                "toronto"
+            ],
+            "norris": [
+                "detroit",
+                "los angeles",
+                "montreal",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "patrick": [
+                "atlanta",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia"
+            ],
+            "smythe": [
+                "chicago",
+                "kansas city",
+                "minnesota",
+                "st louis",
+                "vancouver"
+            ]
+        }
+    },
+    "1976": {
+        "wales": {
+            "adams": [
+                "cleveland",
+                "boston",
+                "buffalo",
+                "toronto"
+            ],
+            "norris": [
+                "detroit",
+                "los angeles",
+                "montreal",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "patrick": [
+                "atlanta",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia"
+            ],
+            "smythe": [
+                "chicago",
+                "colorado",
+                "minnesota",
+                "st louis",
+                "vancouver"
+            ]
+        }
+    },
+    "1978": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "minnesota",
+                "toronto"
+            ],
+            "norris": [
+                "detroit",
+                "los angeles",
+                "montreal",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "patrick": [
+                "atlanta",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia"
+            ],
+            "smythe": [
+                "chicago",
+                "colorado",
+                "st louis",
+                "vancouver"
+            ]
+        }
+    },
+    "1979": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "minnesota",
+                "quebec",
+                "toronto"
+            ],
+            "norris": [
+                "detroit",
+                "hartford",
+                "los angeles",
+                "montreal",
+                "pittsburgh"
+            ]
+        },
+        "campbell": {
+            "patrick": [
+                "atlanta",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington"
+            ],
+            "smythe": [
+                "chicago",
+                "colorado",
+                "edmonton",
+                "st louis",
+                "vancouver",
+                "winnipeg"
+            ]
+        }
+    },
+    "1980": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "minnesota",
+                "quebec",
+                "toronto"
+            ],
+            "norris": [
+                "detroit",
+                "hartford",
+                "los angeles",
+                "montreal",
+                "pittsburgh"
+            ]
+        },
+        "campbell": {
+            "patrick": [
+                "calgary",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington"
+            ],
+            "smythe": [
+                "chicago",
+                "colorado",
+                "edmonton",
+                "st louis",
+                "vancouver",
+                "winnipeg"
+            ]
+        }
+    },
+    "1981": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "quebec"
+            ],
+            "patrick": [
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "norris": [
+                "detroit",
+                "chicago",
+                "minnesota",
+                "st louis",
+                "toronto",
+                "winnipeg"
+            ],
+            "smythe": [
+                "calgary",
+                "colorado",
+                "edmonton",
+                "los angeles",
+                "vancouver"
+            ]
+        }
+    },
+    "1982": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "quebec"
+            ],
+            "patrick": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "norris": [
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto"
+            ],
+            "smythe": [
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "winnipeg"
+            ]
+        }
+    },
+    "1991": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "quebec"
+            ],
+            "patrick": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "norris": [
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto"
+            ],
+            "smythe": [
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "winnipeg",
+                "san jose"
+            ]
+        }
+    },
+    "1992": {
+        "wales": {
+            "adams": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "ottawa",
+                "quebec"
+            ],
+            "patrick": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "campbell": {
+            "norris": [
+                "detroit",
+                "chicago",
+                "st louis",
+                "tampa bay",
+                "toronto"
+            ],
+            "smythe": [
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "winnipeg",
+                "san jose"
+            ]
+        }
+    },
+    "1993": {
+        "eastern": {
+            "atlantic": [
+                "florida",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington",
+                "tampa bay"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "ottawa",
+                "pittsburgh",
+                "quebec"
+            ]
+        },
+        "western": {
+            "central": [
+                "dallas",
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto",
+                "winnipeg"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "san jose"
+            ]
+        }
+    },
+    "1995": {
+        "eastern": {
+            "atlantic": [
+                "florida",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington",
+                "tampa bay"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "ottawa",
+                "pittsburgh"
+            ]
+        },
+        "western": {
+            "central": [
+                "dallas",
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto",
+                "winnipeg"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "colorado",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "san jose"
+            ]
+        }
+    },
+    "1996": {
+        "eastern": {
+            "atlantic": [
+                "florida",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington",
+                "tampa bay"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "hartford",
+                "montreal",
+                "ottawa",
+                "pittsburgh"
+            ]
+        },
+        "western": {
+            "central": [
+                "dallas",
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto",
+                "phoenix"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "colorado",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "san jose"
+            ]
+        }
+    },
+    "1997": {
+        "eastern": {
+            "atlantic": [
+                "florida",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "washington",
+                "tampa bay"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "carolina",
+                "montreal",
+                "ottawa",
+                "pittsburgh"
+            ]
+        },
+        "western": {
+            "central": [
+                "dallas",
+                "detroit",
+                "chicago",
+                "st louis",
+                "toronto",
+                "phoenix"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "colorado",
+                "edmonton",
+                "los angeles",
+                "vancouver",
+                "san jose"
+            ]
+        }
+    },
+    "1998": {
+        "eastern": {
+            "atlantic": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "montreal",
+                "ottawa",
+                "toronto"
+            ],
+            "southeast": [
+                "carolina",
+                "florida",
+                "tampa bay",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "detroit",
+                "chicago",
+                "nashville",
+                "st louis"
+            ],
+            "northwest": [
+                "calgary",
+                "colorado",
+                "edmonton",
+                "vancouver"
+            ],
+            "pacific": [
+                "anaheim",
+                "dallas",
+                "los angeles",
+                "phoenix",
+                "san jose"
+            ]
+        }
+    },
+    "1999": {
+        "eastern": {
+            "atlantic": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "montreal",
+                "ottawa",
+                "toronto"
+            ],
+            "southeast": [
+                "atlanta",
+                "carolina",
+                "florida",
+                "tampa bay",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "detroit",
+                "chicago",
+                "nashville",
+                "st louis"
+            ],
+            "northwest": [
+                "calgary",
+                "colorado",
+                "edmonton",
+                "vancouver"
+            ],
+            "pacific": [
+                "anaheim",
+                "dallas",
+                "los angeles",
+                "phoenix",
+                "san jose"
+            ]
+        }
+    },
+    "2000": {
+        "eastern": {
+            "atlantic": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "montreal",
+                "ottawa",
+                "toronto"
+            ],
+            "southeast": [
+                "atlanta",
+                "carolina",
+                "florida",
+                "tampa bay",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "columbus",
+                "detroit",
+                "chicago",
+                "nashville",
+                "st louis"
+            ],
+            "northwest": [
+                "calgary",
+                "colorado",
+                "edmonton",
+                "minnesota",
+                "vancouver"
+            ],
+            "pacific": [
+                "anaheim",
+                "dallas",
+                "los angeles",
+                "phoenix",
+                "san jose"
+            ]
+        }
+    },
+    "2011": {
+        "eastern": {
+            "atlantic": [
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh"
+            ],
+            "northeast": [
+                "boston",
+                "buffalo",
+                "montreal",
+                "ottawa",
+                "toronto"
+            ],
+            "southeast": [
+                "winnipeg",
+                "carolina",
+                "florida",
+                "tampa bay",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "columbus",
+                "detroit",
+                "chicago",
+                "nashville",
+                "st louis"
+            ],
+            "northwest": [
+                "calgary",
+                "colorado",
+                "edmonton",
+                "minnesota",
+                "vancouver"
+            ],
+            "pacific": [
+                "anaheim",
+                "dallas",
+                "los angeles",
+                "phoenix",
+                "san jose"
+            ]
+        }
+    },
+    "2013": {
+        "eastern": {
+            "atlantic": [
+                "boston",
+                "buffalo",
+                "detroit",
+                "florida",
+                "montreal",
+                "ottawa",
+                "tampa bay",
+                "toronto"
+            ],
+            "metropolitan": [
+                "carolina",
+                "columbus",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "chicago",
+                "colorado",
+                "dallas",
+                "minnesota",
+                "nashville",
+                "st louis",
+                "winnipeg"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "phoenix",
+                "san jose",
+                "vancouver"
+            ]
+        }
+    },
+    "2014": {
+        "eastern": {
+            "atlantic": [
+                "boston",
+                "buffalo",
+                "detroit",
+                "florida",
+                "montreal",
+                "ottawa",
+                "tampa bay",
+                "toronto"
+            ],
+            "metropolitan": [
+                "carolina",
+                "columbus",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "chicago",
+                "colorado",
+                "dallas",
+                "minnesota",
+                "nashville",
+                "st louis",
+                "winnipeg"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "arizona",
+                "san jose",
+                "vancouver"
+            ]
+        }
+    },
+    "2017": {
+        "eastern": {
+            "atlantic": [
+                "boston",
+                "buffalo",
+                "detroit",
+                "florida",
+                "montreal",
+                "ottawa",
+                "tampa bay",
+                "toronto"
+            ],
+            "metropolitan": [
+                "carolina",
+                "columbus",
+                "new jersey",
+                "ny islanders",
+                "ny rangers",
+                "philadelphia",
+                "pittsburgh",
+                "washington"
+            ]
+        },
+        "western": {
+            "central": [
+                "chicago",
+                "colorado",
+                "dallas",
+                "minnesota",
+                "nashville",
+                "st louis",
+                "winnipeg"
+            ],
+            "pacific": [
+                "anaheim",
+                "calgary",
+                "edmonton",
+                "los angeles",
+                "arizona",
+                "san jose",
+                "vancouver",
+                "vegas"
+            ]
+        }
+    }
+}

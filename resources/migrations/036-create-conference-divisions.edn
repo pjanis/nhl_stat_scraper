@@ -1,0 +1,7 @@
+{:up ["CREATE TABLE conference_divisions(
+        conference_id INT NOT NULL,
+        division_id INT NOT NULL,
+        seasons_active INT4RANGE
+        );"]
+ :down ["DROP TABLE conference_divisions;"]
+}
