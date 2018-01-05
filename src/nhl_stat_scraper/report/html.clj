@@ -12,7 +12,7 @@
 (def svg-select [[:svg (enlive/nth-of-type 1)]])
 
 (defmacro game-snippet-model [model-name]
-  `(def ~(symbol (str model-name "-model")) (enlive/snippet ~(str "nhl_stat_scraper/templates/" model-name ".html") svg-select ~[{:keys ['bout 'game-id]}]
+  `(def ~(symbol (str model-name "-model")) (enlive/snippet ~(str "nhl_stat_scraper/templates/public/" model-name ".html") svg-select ~[{:keys ['bout 'game-id]}]
     [:svg] (enlive/do->
              (enlive/add-class (str "bout_" ~(symbol 'bout)))
              (enlive/add-class (str "game_" ~(symbol 'game-id)))))))
@@ -76,11 +76,11 @@
     "away-win" (away-win-model game-data))
   )
 
-(def game-divider (enlive/html-snippet (clojure.string/trim (common-parse/slurp "src/nhl_stat_scraper/templates/game-divider.html"))))
+(def game-divider (enlive/html-snippet (clojure.string/trim (common-parse/slurp "src/nhl_stat_scraper/templates/public/game-divider.html"))))
 
 (def team-select [[:div.team (enlive/nth-of-type 1)]])
 
-(enlive/defsnippet team-model "nhl_stat_scraper/templates/team.html.snippet" team-select
+(enlive/defsnippet team-model "nhl_stat_scraper/templates/public/team.html.snippet" team-select
   [{:keys [team-id]} division-name conference-name season season-part]
   [:div.team] (enlive/do->
                 (enlive/add-class division-name conference-name))
@@ -99,7 +99,7 @@
 
 (def division-select [[:div.division (enlive/nth-of-type 1)]])
 
-(enlive/defsnippet division-model "nhl_stat_scraper/templates/division.html.snippet" division-select
+(enlive/defsnippet division-model "nhl_stat_scraper/templates/public/division.html.snippet" division-select
   [{:keys [division-name division-teams]} conference-name season season-part]
   [:div.name] (enlive/do->
         (enlive/content division-name))
@@ -108,7 +108,7 @@
 
 (def conference-select [[:div.conference (enlive/nth-of-type 1)]])
 
-(enlive/defsnippet conference-model "nhl_stat_scraper/templates/conference.html.snippet" conference-select
+(enlive/defsnippet conference-model "nhl_stat_scraper/templates/public/conference.html.snippet" conference-select
   [{:keys [conference-name conference-divisions]} season season-part]
   [:div.name] (enlive/do->
         (enlive/content conference-name))
@@ -117,7 +117,7 @@
 
 (def detail-select [[:div.game_detail (enlive/nth-of-type 1)]])
 
-(enlive/defsnippet detail-model "nhl_stat_scraper/templates/game-detail.html.snippet" detail-select
+(enlive/defsnippet detail-model "nhl_stat_scraper/templates/public/game-detail.html.snippet" detail-select
   [{:keys [game-id game-date home-team-name home-team-score away-team-name away-team-score game-state]}]
   [:div.game_detail] (enlive/do-> (enlive/add-class (str "game_" game-id)))
   [:div.detail_date] (enlive/do-> (enlive/content game-date))
@@ -143,10 +143,10 @@
 (defn include-css [href]
         (first (enlive/html [:link {:href href :rel "stylesheet"}])))
 
-(enlive/deftemplate index "nhl_stat_scraper/templates/index.html"
+(enlive/deftemplate index "nhl_stat_scraper/templates/public/index.html"
   [{:keys [title conferences season season-part]}]
-  [:head] (enlive/append (map include-css ["/css/index.css"]))
-  [:head] (enlive/append (map include-js ["/js/index.js"]))
+  [:head] (enlive/append (map include-css ["/app.css"]))
+  [:head] (enlive/append (map include-js ["/app.js"]))
   [:title] (enlive/content title)
   [:div#year_select] (enlive/html-content (header-content season season-part))
   [:div#conferences]   (enlive/content (map #(conference-model % season season-part) (sort-by :conference-name conferences)))
@@ -163,11 +163,14 @@
 
 (defn update-css-file [css-file]
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/css/" css-file)))
-    (io/file (io/as-relative-path (str "resources/public/css/" css-file)))))
+    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" css-file)))
+    (io/file (io/as-relative-path (str "resources/public/" css-file))))
+  (io/copy
+    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" css-file ".map")))
+    (io/file (io/as-relative-path (str "resources/public/" css-file ".map")))))
 
 (defn update-css-files []
-  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/css")) files
+  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/public")) files
       (filter #(.isFile %) files)
       (map #(.getName %) files)
       (filter #(re-matches #".*\.css" %) files)
@@ -175,11 +178,14 @@
 
 (defn update-js-file [js-file]
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/js/" js-file)))
-    (io/file (io/as-relative-path (str "resources/public/js/" js-file)))))
+    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" js-file)))
+    (io/file (io/as-relative-path (str "resources/public/" js-file))))
+  (io/copy
+    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" js-file ".map")))
+    (io/file (io/as-relative-path (str "resources/public/" js-file ".map")))))
 
 (defn update-js-files []
-  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/js")) files
+  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/public")) files
       (filter #(.isFile %) files)
       (map #(.getName %) files)
       (filter #(re-matches #".*\.js" %) files)

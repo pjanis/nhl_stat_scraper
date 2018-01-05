@@ -18,7 +18,7 @@
     (db-populate/update-game-summaries false)
     (report-html/create-dev-index (:season options) "regular" (str "resources/public/" (:season options) "/index.html"))))
 
-(defn update-play-data []
+(defn update-play-data [_options]
   (print "NOT YET IMPLEMENTED"))
 
 (defn start-dev-server []

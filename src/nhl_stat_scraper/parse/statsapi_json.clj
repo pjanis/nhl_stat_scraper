@@ -38,6 +38,9 @@
 (defn future-game? [game-json]
   (= "Scheduled" (get-in game-json ["status" "detailedState"])))
 
+(defn postponed-game? [game-json]
+  (= "Postponed" (get-in game-json ["status" "detailedState"])))
+
 ;leaving everything as org.joda.timeDateTime, but creating it from the NY date
 (defn ny-date [datetime]
   (let [ny-datetime (clj-time.core/to-time-zone datetime (clj-time.core/time-zone-for-id "America/New_York"))]
@@ -66,8 +69,8 @@
       :visiting_team_db_id (get (nhl-stat-scraper.database.teams/get-team-by-statsapi-id
                               (get-in game-json ["teams" "away" "team" "id"]))
                                 :db_id)
-      :home_team_score (if (future-game? game-json) nil (get-in game-json ["teams" "home" "score"]))
-      :visiting_team_score (if (future-game? game-json) nil (get-in game-json ["teams" "away" "score"]))
+      :home_team_score (if (or (future-game? game-json) (postponed-game? game-json)) nil (get-in game-json ["teams" "home" "score"]))
+      :visiting_team_score (if (or (future-game? game-json) (postponed-game? game-json)) nil (get-in game-json ["teams" "away" "score"]))
       :complete complete
     )))
 

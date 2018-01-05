@@ -1,9 +1,9 @@
 (ns nhl-stat-scraper.serve.develop
   (:require [clojure.java.io :as io]
-            [org.httpkit.server :as server]
             [compojure.core :as core]
             [compojure.handler :as handler]
             [compojure.route :as route]
+            [ring.adapter.jetty :as ring-jetty]
             [nhl-stat-scraper.report.html :as report-html]))
 
 (defn load-main-file [req]
@@ -11,17 +11,16 @@
     :headers {"Content-Type" "text/html"}
     :body    (io/file (io/resource "public/index.html"))})
 
-(defonce dev-server (atom nil))
-
 (core/defroutes app-routes
   (core/GET "/" [] load-main-file )
   (route/resources "/")
   (route/not-found "<p>Page not found.</p>"))
 
+(defonce dev-server (ring-jetty/run-jetty #'app-routes {:port 8080 :join? false}))
+
 (defn start-server []
-  (reset! dev-server (server/run-server (handler/site #'app-routes) {:port 8080})))
+  (.start dev-server))
 
 (defn stop-server []
-  (when-not (nil? @dev-server)
-    (reset! dev-server (@dev-server))))
+  (.stop dev-server))
 

@@ -14,8 +14,9 @@
   [list-to-remap map-key]
   (apply merge-with concat (map (fn [item] {(get item map-key) [item]}) list-to-remap)))
 
-(defn join-teams [& teams-lists]
+(defn join-teams
   "Merges all the values for the teams in the teams-list"
+  [& teams-lists]
   (let [id-maps (map #(list-unique-remap % :db_id) teams-lists)]
     (vals (apply merge-with merge id-maps))))
 

@@ -1,4 +1,4 @@
-(defproject nhl_stat_scraper "0.4.0"
+(defproject nhl_stat_scraper "0.6.0"
   :description "App to create database with NHL game data"
   :url ""
   :license {:name "Eclipse Public License"
@@ -11,14 +11,15 @@
                  [dire "0.5.4"]
                  [enlive "1.1.6"]
                  [hikari-cp "1.7.5"]
-                 [http-kit "2.2.0"]
                  [javax.servlet/servlet-api "2.5"]
                  [org.clojure/clojure "1.8.0"]
                  [org.clojure/java.jdbc "0.6.1"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.postgresql/postgresql "42.1.1"]
-                 [ragtime "0.7.1"]]
+                 [ragtime "0.7.1"]
+                 [ring/ring-core "1.6.3"]
+                 [ring/ring-jetty-adapter "1.6.3"]]
   :main ^:skip-aot nhl-stat-scraper.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}

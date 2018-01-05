@@ -57,10 +57,10 @@
 
 
 (defn team-all-game-results [team-id season] ;depreciated, use team-game-results
-  (team-game-results [team-id season ""]))
+  (team-game-results team-id season ""))
 
 (defn team-regular-season-game-results [team-id season] ;depreciated, use team-game-results
-  (team-game-results [team-id season "regular"]))
+  (team-game-results team-id season "regular"))
 
 (defn team-points
   "Semi-private: Used to do the actual calculation"

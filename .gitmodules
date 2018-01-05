@@ -1,0 +1,3 @@
+[submodule "src/nhl_stat_scraper/templates"]
+	path = src/nhl_stat_scraper/templates
+	url = /Users/pjanisiewicz/src/side/nhl_stats/nhl_brunch
