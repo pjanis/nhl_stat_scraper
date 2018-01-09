@@ -7,7 +7,6 @@
                  [clj-time "0.13.0"]
                  [com.taoensso/timbre "4.10.0"]
  ;                [com.fzakaria/slf4j-timbre "0.3.1"]
-                 [compojure "1.6.0"]
                  [dire "0.5.4"]
                  [enlive "1.1.6"]
                  [hikari-cp "1.7.5"]
@@ -23,5 +22,9 @@
   :main ^:skip-aot nhl-stat-scraper.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
-             :dev {:resource-paths ["src/main/resources/public"]}}
+             :dev {:resource-paths ["development" "private"]
+                   :source-paths ["development/src"]
+                   :dependencies [[compojure "1.6.0"]
+                                  [ring/ring-core "1.6.3"]
+                                  [ring/ring-jetty-adapter "1.6.3"]]}}
   :jvm-opts ["-Duser.timezone=UTC"])

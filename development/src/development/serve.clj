@@ -1,4 +1,4 @@
-(ns nhl-stat-scraper.serve.develop
+(ns development.serve
   (:require [clojure.java.io :as io]
             [compojure.core :as core]
             [compojure.handler :as handler]
@@ -9,7 +9,7 @@
 (defn load-main-file [req]
   {:status  200
     :headers {"Content-Type" "text/html"}
-    :body    (io/file (io/resource "public/index.html"))})
+    :body    (io/file "/development/public/index.html")})
 
 (core/defroutes app-routes
   (core/GET "/" [] load-main-file )

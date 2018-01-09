@@ -2,7 +2,6 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [nhl-stat-scraper.database.populate :as db-populate]
             [nhl-stat-scraper.database.postgres :as db-pg]
-            [nhl-stat-scraper.serve.develop :as serve-develop]
             [nhl-stat-scraper.report.html :as report-html])
   (:gen-class))
 
@@ -16,16 +15,10 @@
   ([] (update-dev-standings {:season 2016}))
   ([options]
     (db-populate/update-game-summaries false)
-    (report-html/create-dev-index (:season options) "regular" (str "resources/public/" (:season options) "/index.html"))))
+    (report-html/create-dev-index (:season options) "regular" (str "development/public/" (:season options) "/index.html"))))
 
 (defn update-play-data [_options]
   (print "NOT YET IMPLEMENTED"))
-
-(defn start-dev-server []
-  (serve-develop/start-server))
-
-(defn stop-dev-server []
-  (serve-develop/stop-server))
 
 (defn migrate []
   (db-pg/migrate))
