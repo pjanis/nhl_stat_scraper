@@ -21,6 +21,8 @@
                  [ring/ring-jetty-adapter "1.6.3"]]
   :main ^:skip-aot nhl-stat-scraper.core
   :target-path "target/%s"
+  :jar-exclusions [#"templates/(?!public).*"]
+  :uberjar-exclusions [#"templates/(?!public).*"]
   :profiles {:uberjar {:aot :all}
              :dev {:resource-paths ["development" "private"]
                    :source-paths ["development/src"]
