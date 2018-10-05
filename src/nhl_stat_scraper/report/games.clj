@@ -3,6 +3,7 @@
     [clojure.java.jdbc :as jdbc]
     [clojure.string :as str]
     [clj-time.format]
+    [nhl-stat-scraper.common.games :as common-games]
     [nhl-stat-scraper.database.games :as db-games]
     [nhl-stat-scraper.database.teams :as db-teams]))
 
@@ -135,8 +136,8 @@
     (and (not (:complete game-summary)) (ongoing game-summary)) "in progress"
     (and (not (:complete game-summary)) (not (ongoing game-summary))) "scheduled"
     (:regulation_win game-summary) "final"
-    (:overtime_win game-summary) "final/ot"
-    :else "final/shootout"))
+    (:overtime_win game-summary) "final - overtime"
+    :else "final - shootout"))
 
 (defn games-exist
   ([season] (games-exist season "regular"))
@@ -153,3 +154,34 @@
                    :away-team-score (:visiting_team_score game-summary)
                    :game-state (game-state game-summary)))
        (db-games/db-game-summaries season season-part)))
+
+(defn chunk-period
+  ([plays period begin-events] (chunk-period plays period begin-events begin-events nil))
+  ([plays period begin-events end-events] (chunk-period plays period begin-events end-events nil))
+  ([plays period begin-events end-events carry-over]
+    (reduce (fn[[chunks new-chunk] play]
+              (if (nil? new-chunk)
+                (if (common-games/in? begin-events (get play :play-event))
+                  [chunks {:start-time (get play :period-time)
+                           :start-period period
+                           :start-play-id (get play :play-id)
+                           :start-event (get play :play-event)}]
+                  [chunks nil])
+                (if (common-games/in? end-events (get play :play-event))
+                  [(conj chunks (merge new-chunk {:stop-time (get play :period-time)
+                                                  :stop-period period
+                                                  :stop-play-id (get play :play-id)
+                                                  :stop-event (get play :play-event)}))
+                   (if (common-games/in? begin-events (get play :play-event))
+                    {:start-time (get play :period-time)
+                     :start-period period
+                     :start-play-id (get play :play-id)
+                     :start-event (get play :play-event)}
+                    nil)]
+                  [chunks new-chunk])))
+            [[] carry-over]
+            (->> plays
+                (filter #(= (get % :period) period))
+                (filter #(common-games/in? (concat begin-events end-events) (get % :play-event)))
+                (sort-by (juxt :period-time :play-id))))))
+

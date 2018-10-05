@@ -3,5 +3,5 @@
             [nhl-stat-scraper.core :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+  (testing "Default. No tests for now."
+    (is (= 1 1))))

@@ -108,6 +108,7 @@
 (defmethod to-date org.joda.time.DateTime [raw-date]
   (ranged-types/create-date (clj-time.format/unparse (clj-time.format/formatters :date) raw-date)))
 (defmethod to-date java.lang.String [raw-date] (ranged-types/create-date raw-date))
+(defmethod to-date java.util.Date [raw-date] (ranged-types/create-date (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") raw-date)))
 (defmethod to-date :default [raw-date] raw-date)
 
 (defmulti to-date-range class)

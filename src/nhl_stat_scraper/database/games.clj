@@ -11,6 +11,7 @@
 
 
 (defn insert-game-summaries
+  ([game-summaries] (insert-game-summaries db-pg/pg-datasource game-summaries))
   ([datasource game-summaries]
     (if (not (empty? game-summaries))
       (jdbc/insert-multi! datasource :game_summaries (sort-by :game_id game-summaries) ))))
@@ -40,6 +41,14 @@
   ([date-str] (db-game-summaries-on date-str db-pg/pg-datasource))
   ([date-str datasource]
     (db-general/get-all-by-values {:game_date (common-parse/string-to-date date-str)} "game_summaries" datasource)))
+
+(defn db-game-summaries-between
+  ([start-date-str stop-date-str] (db-game-summaries-between start-date-str stop-date-str db-pg/pg-datasource))
+  ([start-date-str stop-date-str datasource]
+    (jdbc/query datasource [(format "SELECT * FROM game_summaries
+                            WHERE game_date >= '%s'
+                            AND game_date <= '%s'"
+                            start-date-str stop-date-str)])))
 
 (defn db-game-summary-ids
   ([game-id] (db-game-summary-ids game-id db-pg/pg-datasource))
@@ -98,6 +107,16 @@
                             WHERE game_summaries.season > 2016
                             AND statsapi_games.game_json IS NULL
                             AND game_summaries.complete = true"])))
+
+(defn incomplete-game-summaries
+  ([] (incomplete-game-summaries  db-pg/pg-datasource))
+  ([datasource]
+    (jdbc/query datasource ["SELECT * FROM game_summaries
+                            WHERE
+                              ((game_start IS NULL AND game_date < now())
+                               OR game_start < now())
+                              AND (complete = false
+                               OR regulation_win is NULL)"])))
 
 (defn update-game-summary
   ([db_id game-summary] (update-game-summary db_id game-summary db-pg/pg-datasource))

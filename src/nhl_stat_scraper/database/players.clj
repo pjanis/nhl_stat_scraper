@@ -14,7 +14,7 @@
 
 (defn team-players
   "Returns player_team for team and dates"
-  ([team-id] (team-players team-id (new java.util.Date)))
+  ([team-id] (team-players team-id (today)))
   ([team-id date] (team-players team-id date db-pg/pg-datasource))
   ([team-id date datasource]
     (db-ranged/get-all-by-ranged-and-values {"player_teams.dates" (db-ranged/to-date date)}

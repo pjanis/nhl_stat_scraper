@@ -1,0 +1,16 @@
+{:up ["ALTER TABLE player_teams ADD COLUMN db_id SERIAL PRIMARY KEY;",
+      "CREATE TABLE player_numbers(
+        player_team_id INT NOT NULL,
+        player_number INT NOT NULL,
+        dates DATERANGE);",
+      "INSERT INTO player_numbers (player_team_id, player_number, dates)
+         SELECT db_id, player_number, dates FROM player_teams;",
+      "ALTER TABLE player_teams DROP COLUMN player_number;"]
+ :down ["ALTER TABLE player_teams ADD COLUMN player_number INTEGER NOT NULL DEFAULT 999;",
+        "UPDATE player_teams 
+          SET player_number = player_numbers.player_number
+          FROM player_numbers
+          WHERE player_numbers.player_team_id = player_teams.db_id;",
+        "DROP TABLE player_numbers;",
+        "ALTER TABLE player_teams DROP COLUMN db_id;"]
+}

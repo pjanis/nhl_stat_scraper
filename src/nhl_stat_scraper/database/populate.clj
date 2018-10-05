@@ -1,8 +1,10 @@
 (ns nhl-stat-scraper.database.populate
   (:require
+    [clojure.data]
     [clojure.java.jdbc :as jdbc]
     [clojure.java.io :as io]
     [clj-time.core]
+    [clj-time.local]
     [nhl-stat-scraper.parse.json :as parse-json]
     [nhl-stat-scraper.parse.statsapi-json :as parse-statsapi]
     [nhl-stat-scraper.parse.html :as parse-html]
@@ -19,7 +21,8 @@
 
 (defn season-start-date [season]
   (case season
-    2018 "2018-10-01"  ;TODO placeholder until 2018 schedule announced
+    2019 "2019-10-01" ;TODO placeholder until announced
+    2018 "2018-10-03"
     2017 "2017-10-04"
     2016 "2016-10-12"
     2015 "2015-10-07"
@@ -105,25 +108,37 @@
           (doseq [team incomplete-teams]
             (nhl-stat-scraper.database.teams/update-team (get team :db_id) (first (filter #(= (get team :name) (get % :name)) json-teams)))))))))
 
-;TODO Create simpler update for yearly changes
-(defn update-league-structure
+(defn rebuild-league-structure
   "Used to migrate from old league structure to new. Shouldn't be needed most years"
-  []
-  (nhl-stat-scraper.database.general/reset-table "conference_divisions")
-  (nhl-stat-scraper.database.general/reset-table "division_teams")
-  (nhl-stat-scraper.database.general/reset-table "divisions")
-  (nhl-stat-scraper.database.general/reset-table "conferences")
-  (nhl-stat-scraper.database.teams/set-all-seasons [2025 2025])
-  (populate-league-structure)
-  (let [old-teams (nhl-stat-scraper.database.teams/get-teams-by-season 2025)]
-    (doseq [old-team old-teams]
-      (if-let [new-team (nhl-stat-scraper.database.teams/get-team-by-name-and-season (get old-team :name) 2016)]
-        (do
-          (nhl-stat-scraper.database.games/replace-team-id (get old-team :db_id) (get new-team :db_id))
-          (nhl-stat-scraper.database.general/delete-row "db_id" (get old-team :db_id) "teams")))))
-  (doseq [season (range 2005 2018)]
-    (update-team-details-for-season season))
-  )
+  ([]
+    (nhl-stat-scraper.database.general/reset-table "conference_divisions")
+    (nhl-stat-scraper.database.general/reset-table "division_teams")
+    (nhl-stat-scraper.database.general/reset-table "divisions")
+    (nhl-stat-scraper.database.general/reset-table "conferences")
+    (let [last-active-seasons (nhl-stat-scraper.database.teams/last-active-seasons)]
+      (nhl-stat-scraper.database.teams/set-all-seasons [2125 2125]) ;Update in database.teams/last-season if changed
+      (populate-league-structure)
+      (let [old-teams (nhl-stat-scraper.database.teams/get-teams-by-season 2125)]
+        (doseq [old-team old-teams]
+          (if-let [new-team (nhl-stat-scraper.database.teams/get-team-by-name-and-season
+                              (get old-team :name)
+                              (get last-active-seasons (get old-team :db_id)))]
+            (do
+              (nhl-stat-scraper.database.games/replace-team-id (get old-team :db_id) (get new-team :db_id))
+              (nhl-stat-scraper.database.general/delete-row "db_id" (get old-team :db_id) "teams"))))))
+    (doseq [season (range 2005 2018)]
+      (update-team-details-for-season season))))
+
+(defn update-league-structure
+  ([] (update-league-structure (inc (nhl-stat-scraper.database.teams/last-season)) league-structure))
+  ([season structure]
+    (if (nhl-stat-scraper.common.games/in? (keys structure) season)
+      (rebuild-league-structure)
+      (let [current-structure-year (->> (keys structure)
+                                        (sort)
+                                        (filter #(> season %))
+                                        (last))]
+        (populate-season-league season (get structure current-structure-year))))))
 
 (defn populate-team-colors []
   (nhl-stat-scraper.database.teams/populate-team-colors db-pg/pg-datasource (parse-html/wikipedia-team-info)))
@@ -166,7 +181,9 @@
 (defmethod populate-season-game-summaries :statsapi [season]
   (nhl-stat-scraper.database.games/insert-game-summaries
     db-pg/pg-datasource
-    (parse-statsapi/game-summaries-between-dates (season-start-date season) (str (+ 1 season) "-06-30"))))
+    (->> (parse-statsapi/game-summaries-between-dates (season-start-date season) (str (+ 1 season) "-06-30"))
+         ;remove games against non-league teams (primarily for preseason
+         (filter #(not (or (nil? (get % :home_team_db_id )) (nil? (get % :visiting_team_db_id ))))))))
 
 (defn populate-players-and-roster [game-summary]
   (let [game-id (get game-summary :game_id)
@@ -216,71 +233,95 @@
   (doseq [game-summary (nhl-stat-scraper.database.games/db-game-summaries)]
     (populate-game-details game-summary)))
 
-(defn update-game-details [game-summary]
-  (nhl-stat-scraper.database.players/delete-game-player-shifts (get game-summary :game_id))
-  (nhl-stat-scraper.database.players/delete-game-players (get game-summary :game_id))
-  (nhl-stat-scraper.database.plays/delete-all-play-details-for-game (get game-summary :game_id))
-  ;TODO ? check player rosters for new players and remove
-  (populate-game-details game-summary))
-
 (defn update-game-summary
-  ([game-summary] (update-game-summary game-summary true))
-  ([game-summary update-details]
-    (let [db-ids (nhl-stat-scraper.database.games/db-game-summary-ids (get game-summary :game_id))]
+  ([game-summary] (update-game-summary game-summary []))
+  ([game-summary selected-keys]
+    (let [db-ids (nhl-stat-scraper.database.games/db-game-summary-ids (get game-summary :game_id))
+          selected-game-summary (if (empty? selected-keys) game-summary (select-keys game-summary selected-keys))]
       (if (= (count db-ids) 1)
-        (do
-          (nhl-stat-scraper.database.games/update-game-summary (first db-ids) game-summary)
-          (if update-details (update-game-details game-summary)))
+        (nhl-stat-scraper.database.games/update-game-summary (first db-ids) selected-game-summary)
         (if (= (count db-ids) 0)
-          (print (format "Missing db entry for game_id %s" (get game-summary :game_id)))
-          (print (format "Multiple db entries for game_id %s" (get game-summary :game_id))))))))
+          (println (format "Missing db entry for game_id %s" (get game-summary :game_id)))
+          (println (format "Multiple db entries for game_id %s" (get game-summary :game_id))))))))
 
-(defmulti update-game-summaries-on date-api)
-(defmethod update-game-summaries-on :nhl
-  ([update-date] (update-game-summaries-on update-date true))
-  ([update-date update-details]
-    (doseq [game-summary (parse-json/game-summaries-on update-date)] (update-game-summary game-summary update-details))))
-(defmethod update-game-summaries-on :statsapi
-  ([update-date] (update-game-summaries-on update-date true))
-  ([update-date update-details]
-    (doseq [game-summary (parse-statsapi/game-summaries-on update-date)] (update-game-summary game-summary update-details))
-    (doseq [game-summary (nhl-stat-scraper.database.games/complete-game-summaries-without-statsapi-game)]
-      (update-game-summary (parse-statsapi/game-summary-from-game-id (get game-summary :game_id)) update-details))))
+(defn update-or-insert-game-summary
+  ([game-summary] (update-game-summary game-summary []))
+  ([game-summary selected-keys]
+    (let [db-ids (nhl-stat-scraper.database.games/db-game-summary-ids (get game-summary :game_id))
+          selected-game-summary (if (empty? selected-keys) game-summary (select-keys game-summary selected-keys))]
+      (if (= (count db-ids) 1)
+        (nhl-stat-scraper.database.games/update-game-summary (first db-ids) selected-game-summary)
+        (if (= (count db-ids) 0)
+          (nhl-stat-scraper.database.games/insert-game-summaries [game-summary])
+          (println (format "Multiple db entries for game_id %s" (get game-summary :game_id))))))))
 
-(defmulti update-game-summaries-from date-api)
-(defmethod update-game-summaries-from :nhl
-  ([update-date] (update-game-summaries-from update-date true))
-  ([update-date update-details] (update-game-summaries-from update-date
-                                                            update-details
-                                                            (season-from-date update-date)))
-  ([update-date update-details season-to-update]
-    (let [game-summaries (parse-json/game-summaries-on update-date)]
-      (if (= season-to-update (nhl-stat-scraper.common.games/season-from-id (get (first game-summaries) :game_id)))
-          (do
-            (doseq [game-summary game-summaries] (update-game-summary game-summary update-details))
-            (let [next-date (parse-json/next-date update-date)]
-              (if (not-empty next-date) (update-game-summaries-from next-date update-details season-to-update))))))))
-(defmethod update-game-summaries-from :statsapi
-  ([update-date] (update-game-summaries-from update-date true))
-  ([update-date update-details] (update-game-summaries-from update-date
-                                                            update-details
-                                                            (season-from-date update-date)))
-  ([update-date update-details season-to-update]
-    (let [game-summaries (parse-statsapi/game-summaries-between-dates update-date (str (+ 1 season-to-update) "-07-31"))]
-      (doseq [game-summary game-summaries] (update-game-summary game-summary update-details))
-      (doseq [game-summary (nhl-stat-scraper.database.games/complete-game-summaries-without-statsapi-game)]
-        (update-game-summary (parse-statsapi/game-summary-from-game-id (get game-summary :game_id)) update-details)))))
+(defmulti update-calendar date-api)
+(defmethod update-calendar :nhl [start-date stop-date]
+  (println "Not Implemented for older data sources. Past calendars should be complete when populated."))
+(defmethod update-calendar :statsapi
+  ([start-date stop-date]
+    (let [new-game-summaries (reduce
+                               #(assoc %1 (get %2 :game_id) %2)
+                               {}
+                               (parse-statsapi/game-summaries-between-dates start-date stop-date))
+          existing-game-summaries (reduce
+                                    #(assoc %1 (get %2 :game_id) %2)
+                                    {}
+                                    (nhl-stat-scraper.database.games/db-game-summaries-between start-date stop-date))
+          [new-game-ids removed-game-ids overlap-game-ids] (clojure.data/diff (keys new-game-summaries) (keys existing-game-summaries))]
+      (doseq [game-summary (map #(get new-game-summaries %) new-game-ids)]
+        (update-or-insert-game-summary game-summary [:game_id :game_date :game_start]))
+      (doseq [game-summary (map parse-statsapi/game-summary-from-game-id removed-game-ids)]
+        (update-game-summary game-summary [:game_id :game_date :game_start]))
+      (doseq [game-summary (map #(get new-game-summaries %) (filter #(not= (get-in new-game-summaries [% :game_start]) (get-in existing-game-summaries [% :game_start])) overlap-game-ids))]
+        (update-game-summary game-summary [:game_id :game_date :game_start])))))
 
-(defn update-game-summaries
-  ([] (update-game-summaries true))
-  ([update-details]
-    (let [incomplete-dates (nhl-stat-scraper.database.games/incomplete-dates)]
-      (if (and (not (empty? incomplete-dates))
-               (clj-time.core/before? (nhl-stat-scraper.common.parse/string-to-date (first incomplete-dates))
-                                      (clj-time.core/minus (clj-time.core/now) (clj-time.core/days 1))))
-        (update-game-summaries-from (first incomplete-dates) update-details)
-        (doseq [incomplete-date incomplete-dates]
-          (if (not (clj-time.core/after? (nhl-stat-scraper.common.parse/string-to-date incomplete-date)
-                                         (clj-time.core/now)))
-            (update-game-summaries-on incomplete-date update-details)))))))
+(defn update-full-calendar [season] (update-calendar (season-start-date season) (str (inc season) "-07-31")))
+(defn update-calendar-from [start-date] (update-calendar start-date (str (inc (season-from-date start-date)) "-07-31")))
+(defn update-calendar-on [on-date] (update-calendar on-date on-date))
+(defn update-incomplete-calendar []
+  (let [start-date (first nhl-stat-scraper.database.games/incomplete-dates)]
+    (update-calendar start-date (str (inc (season-from-date start-date)) "-07-31"))))
 
+(defmulti update-game-summaries-between date-api)
+(defmethod update-game-summaries-between :nhl
+  ([start-date stop-date]
+    (if (>= 0 (compare start-date stop-date))
+      (let [game-summaries (parse-json/game-summaries-on start-date)]
+        (doseq [game-summary game-summaries] (update-game-summary game-summary))
+        (let [next-date (parse-json/next-date start-date)]
+          (if (not-empty next-date) (update-game-summaries-between next-date stop-date)))))))
+(defmethod update-game-summaries-between :statsapi
+  ([start-date stop-date]
+    (let [game-summaries (parse-statsapi/game-summaries-between-dates start-date stop-date)]
+      (doseq [game-summary game-summaries] (update-game-summary game-summary)))))
+
+(defn update-full-game-summaries [season] (update-game-summaries-between (season-start-date season) (str (inc season) "-07-31")))
+(defn update-game-summaries-from [start-date] (update-game-summaries-between start-date (str (inc (season-from-date start-date)) "-07-31")))
+(defn update-game-summaries-on [on-date] (update-game-summaries-between on-date on-date))
+(defn update-incomplete-game-summaries []
+  (update-game-summaries-between
+    (first (nhl-stat-scraper.database.games/incomplete-dates))
+    (clj-time.local/format-local-time (clj-time.local/local-now) :date)))
+
+;Updating game_summary for good measure (calendar page has had incorrect values for ongoing games before)
+(defmulti update-games-between date-api)
+(defmethod update-games-between :nhl
+  ([start-date stop-date] (println "Full game data is only implemented for the 2017 season and after.")))
+(defmethod update-games-between :statsapi
+  ([start-date stop-date]
+   (let [game-ids (map #(get % :game_id) (nhl-stat-scraper.database.games/db-game-summaries-between start-date stop-date))]
+     (doseq [game-id game-ids]
+       (let [game-summary (parse-statsapi/game-summary-from-game-id game-id)]
+         (update-game-summary game-summary))))))
+
+(defn update-full-games [season]
+  (println "Updating full games for the entire season requires ~1200 requests. Please use sparingly. Starting now...")
+  (update-games-between (season-start-date season) (str (inc season) "-07-31")))
+(defn update-games-from [start-date] (update-games-between start-date (str (inc (season-from-date start-date)) "-07-31")))
+(defn update-games-on [on-date] (update-games-between on-date on-date))
+(defn update-incomplete-games []
+  (let [incomplete-game-ids (map #(get % :game_id) (nhl-stat-scraper.database.games/incomplete-game-summaries))]
+     (doseq [game-id incomplete-game-ids]
+       (let [game-summary (parse-statsapi/game-summary-from-game-id game-id)]
+         (update-game-summary game-summary)))))

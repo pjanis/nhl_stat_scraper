@@ -85,14 +85,6 @@
 
 (defn game-summaries-on [game-date] (game-summaries-between-dates game-date game-date))
 
-(defn full-game-json [game-id]
-  (let [db-statsapi-game (nhl-stat-scraper.database.games/get-statsapi-game game-id)]
-    (if (nil? db-statsapi-game)
-      (let [game-json (request-json (live-score-api game-id))]
-        (nhl-stat-scraper.database.games/insert-statsapi-game game-id game-json)
-        game-json)
-      (get db-statsapi-game :game_json))))
-
 (defn update-full-game-json [game-id]
   (let [game-json (request-json (live-score-api game-id))]
     (if (nil? (nhl-stat-scraper.database.games/get-statsapi-game game-id))
@@ -102,9 +94,9 @@
 
 
 (defn game-summary-from-game-id
-  "Returns map for db based on a game-id"
+  "Returns map for db based on a game-id and updates game-json in the db"
   [game-id]
-  (let [game-json (full-game-json game-id)
+  (let [game-json (update-full-game-json game-id)
         datetime (clj-time.coerce/to-date-time (get-in game-json ["gameData" "datetime" "dateTime"]))
         season (common-parse/parse-int (subs (get-in game-json ["gameData" "game" "season"]) 0 4))
         complete (= "final" (string/lower-case (get-in game-json ["gameData" "status" "detailedState"])))]
@@ -127,6 +119,79 @@
       :regulation_win (and complete (= 3 (get-in game-json  ["liveData" "linescore" "currentPeriod"])))
       :overtime_win (and complete (= 4 (get-in game-json  ["liveData" "linescore" "currentPeriod"])))
       :complete complete
+    )))
+
+(defn parse-goal-details [play home-team away-team]
+  (hash-map
+    :team (if (= (get home-team :statsapi_id) (get-in play ["team" "id"])) :home :away)
+    :strength (case (string/lower-case (get-in play ["result" "strength" "code"]))
+                "even" :even
+                "ppg" :powerplay
+                "shg" :shorthanded)
+    :empty-net (get-in play ["result" "emptyNet"])
+    :shot-type  (string/lower-case (get-in play ["result" "secondaryType"]))
+    :description (string/lower-case (get-in play ["result" "description"]))
+    :scorer (-> (get-in play ["players"])
+                (->> (filter #(= (string/lower-case (get-in % ["playerType"])) "scorer")))
+                (first)
+                (get-in ["player" "fullName"]))
+    :goalie (-> (get-in play ["players"])
+                (->> (filter #(= (string/lower-case (get-in % ["playerType"])) "goalie")))
+                (first)
+                (get-in ["player" "fullName"]))))
+
+(defn parse-play-details [play home-team away-team]
+  (case (string/lower-case (get-in play ["result" "event"]))
+    "goal" (parse-goal-details play home-team away-team)
+    nil))
+
+(defn parse-plays-from-json
+  ([game-json] (parse-plays-from-json game-json
+                                      (nhl-stat-scraper.database.teams/get-team-by-statsapi-id
+                                       (get-in game-json ["gameData" "teams" "home" "id"]))
+                                      (nhl-stat-scraper.database.teams/get-team-by-statsapi-id
+                                       (get-in game-json ["gameData" "teams" "away" "id"]))))
+  ([game-json home-team away-team]
+    (let [plays (get-in game-json ["liveData" "plays" "allPlays"])]
+      (map #(hash-map
+              :play-event (string/lower-case (get-in % ["result" "event"]))
+              :event-details (parse-play-details % home-team away-team)
+              :location [(get-in % ["coordinates" "x"]) (get-in % ["coordinates" "y"])]
+              :period (get-in % ["about" "period"])
+              :period-time (-> (get-in % ["about" "periodTime"])
+                               (common-parse/string-to-time)
+                               (clj-time.coerce/to-epoch))
+              :play-id (get-in % ["about" "eventIdx"])
+              )
+          plays))))
+
+(defn parse-game-data-from-json
+  [game-json]
+  (let [datetime (clj-time.coerce/to-date-time (get-in game-json ["gameData" "datetime" "dateTime"]))
+        period (get-in game-json ["liveData" "linescore" "currentPeriod"])
+        remaining-time (-> (get-in game-json ["liveData" "linescore" "currentPeriodTimeRemaining"])
+                            (common-parse/string-to-time)
+                            (clj-time.coerce/to-epoch))
+        home-team (nhl-stat-scraper.database.teams/get-team-by-statsapi-id
+                    (get-in game-json ["gameData" "teams" "home" "id"]))
+        away-team (nhl-stat-scraper.database.teams/get-team-by-statsapi-id
+                    (get-in game-json ["gameData" "teams" "away" "id"]))]
+    (hash-map
+      :game-date (ny-date datetime)
+      :period period
+      :period-time (case period
+                     (1 2 3) (- 1200 remaining-time)
+                     4 (- 300 remaining-time)
+                     5 0
+                     0)
+      :final (= "Final" (get-in game-json ["gameData" "status" "detailedState"]))
+      :home-score (get-in game-json ["liveData" "linescore" "teams" "home" "goals"])
+      :away-score (get-in game-json ["liveData" "linescore" "teams" "away" "goals"])
+      :home-team-db-id (get home-team :db_id)
+      :away-team-db-id (get away-team :db_id)
+      :home-team-name (get home-team :name)
+      :away-team-name (get away-team :name)
+      :plays (parse-plays-from-json game-json home-team away-team)
     )))
 
 (defn teams []

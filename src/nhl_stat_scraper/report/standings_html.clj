@@ -1,4 +1,4 @@
-(ns nhl-stat-scraper.report.html
+(ns nhl-stat-scraper.report.standings-html
   (:require [net.cgrand.enlive-html :as enlive]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -145,7 +145,7 @@
 
 (enlive/deftemplate index (io/resource "templates/public/index.html")
   [{:keys [title conferences season season-part]}]
-  [:head] (enlive/append (map include-css ["/app.css"]))
+  [:head] (enlive/append (map include-css ["/standings.css"]))
   [:head] (enlive/append (map include-js ["/app.js"]))
   [:title] (enlive/content title)
   [:div#year_select] (enlive/html-content (header-content season season-part))
@@ -163,14 +163,14 @@
 
 (defn update-css-file [css-file]
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" css-file)))
-    (io/file (io/as-relative-path (str "resources/public/" css-file))))
+    (io/file (io/as-relative-path (str "resources/templates/public/" css-file)))
+    (io/file (io/as-relative-path (str "development/public/" css-file))))
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" css-file ".map")))
-    (io/file (io/as-relative-path (str "resources/public/" css-file ".map")))))
+    (io/file (io/as-relative-path (str "resources/templates/public/" css-file ".map")))
+    (io/file (io/as-relative-path (str "development/public/" css-file ".map")))))
 
 (defn update-css-files []
-  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/public")) files
+  (as-> (file-seq (clojure.java.io/file "resources/templates/public")) files
       (filter #(.isFile %) files)
       (map #(.getName %) files)
       (filter #(re-matches #".*\.css" %) files)
@@ -178,14 +178,14 @@
 
 (defn update-js-file [js-file]
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" js-file)))
-    (io/file (io/as-relative-path (str "resources/public/" js-file))))
+    (io/file (io/as-relative-path (str "resources/templates/public/" js-file)))
+    (io/file (io/as-relative-path (str "development/public/" js-file))))
   (io/copy
-    (io/file (io/as-relative-path (str "src/nhl_stat_scraper/templates/public/" js-file ".map")))
-    (io/file (io/as-relative-path (str "resources/public/" js-file ".map")))))
+    (io/file (io/as-relative-path (str "resources/templates/public/" js-file ".map")))
+    (io/file (io/as-relative-path (str "development/public/" js-file ".map")))))
 
 (defn update-js-files []
-  (as-> (file-seq (clojure.java.io/file "src/nhl_stat_scraper/templates/public")) files
+  (as-> (file-seq (clojure.java.io/file "resources/templates/public")) files
       (filter #(.isFile %) files)
       (map #(.getName %) files)
       (filter #(re-matches #".*\.js" %) files)

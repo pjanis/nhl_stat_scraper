@@ -2,23 +2,31 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [nhl-stat-scraper.database.populate :as db-populate]
             [nhl-stat-scraper.database.postgres :as db-pg]
-            [nhl-stat-scraper.report.html :as report-html])
+            [nhl-stat-scraper.report.standings-html :as standings-html]
+            [nhl-stat-scraper.report.game-html :as game-html]
+            [taoensso.timbre :as timbre])
   (:gen-class))
 
+(timbre/set-level! :warn)
+
+(def default-season 2018)
+
 (defn update-standings
-  ([] (update-standings {:season 2016}))
+  ([] (update-standings {:season default-season}))
   ([options]
-    (db-populate/update-game-summaries false)
-    (report-html/create-index (:season options) "regular" (str (:directory options) (:season options) "/index.html"))))
+    (cond
+      (get options :html) nil
+      (get options :full) (db-populate/update-full-game-summaries (:season options))
+      (get options :from) (db-populate/update-game-summaries-from (:from options))
+      (get options :on)   (db-populate/update-game-summaries-on (:on options))
+      :else (db-populate/update-incomplete-game-summaries))
+    (standings-html/create-index (:season options) "regular" (str (:directory options) (:season options) "/index.html"))))
 
 (defn update-dev-standings
-  ([] (update-dev-standings {:season 2016}))
+  ([] (update-dev-standings {:season default-season}))
   ([options]
-    (db-populate/update-game-summaries false)
-    (report-html/create-dev-index (:season options) "regular" (str "development/public/" (:season options) "/index.html"))))
-
-(defn update-play-data [_options]
-  (print "NOT YET IMPLEMENTED"))
+    (db-populate/update-incomplete-game-summaries)
+    (standings-html/create-dev-index (:season options) "regular" (str "development/public/" (:season options) "/index.html"))))
 
 (defn migrate []
   (db-pg/migrate))
@@ -43,6 +51,26 @@
   (migrate)
   (db-populate/update-league-structure))
 
+(defn update-calendar [options]
+  (cond
+    (get options :html) nil
+    (get options :full) (db-populate/update-full-calendar (:season options))
+    (get options :from) (db-populate/update-calendar-from (:from options))
+    (get options :on)   (db-populate/update-calendar-on (:on options))
+    :else (db-populate/update-incomplete-calendar)))
+
+(defn update-games
+  ([] (update-games {}))
+  ([options]
+    (let [updated-game-ids (cond
+                             (get options :full) (db-populate/update-full-games (:season options))
+                             (get options :from) (db-populate/update-games-from (:from options))
+                             (get options :on)   (db-populate/update-games-on (:on options))
+                             :else (db-populate/update-incomplete-games))]
+    (game-html/create-games updated-game-ids (str (:directory options) (:season options)))
+    (game-html/update-team-links updated-game-ids (str (:directory options) "games/"))
+    )))
+
 (defn bootstrap [options]  ;TODO add season options
   (bootstrap-all))
 
@@ -51,16 +79,20 @@
   [;; First three strings describe a short-option, long-option with optional
   ;; example argument description, and a description. All three are optional
   ;; and positional.
-  ["-s" "--season YEAR" "Season to update"
-    :default 2016 ;TODO make smart year look up for spring/fall
-    :parse-fn #(Integer/parseInt %)
-    :validate [#(< 2013 % 2018) "Must be between 2013 and 2017"]]
   ["-d" "--directory DIR" "Site's root directory"
     :default "public/"]
+  ["-f" "--full" "Updates all data for the season (slow, use rarely)"]
+  [nil "--from DATE" "Updates from a particular date (as ISO, i.e. 2018-10-01)"] ;TODO add validation for dates
+  [nil "--html" "Updates only html output, doesn't updated database"]
+  [nil "--on DATE" "Updates on a particular date (as ISO, i.e. 2018-10-01)"]
+  ["-s" "--season YEAR" "Season to update"
+    :default default-season
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(< 2013 % 2019) "Must be between 2013 and 2018"]]
   ["-h" "--help"]])
 
 (defn usage [options-summary]
-  (->> ["Stat scraper for NHL data"
+  (->> ["Stat scraper and page generator for NHL data"
     ""
     "Usage: nhl-stat [options] action"
     ""
@@ -74,8 +106,9 @@
     "  populate-season   Adds season game summaries to database (must be run once to make update possible)"
     "  update-structure  Adds seasons to teams, divisions, and conferences"
     "  run-corrections   Run database corrections"
-    "  update-standings  Update standing information and create new index files"
-    "  update-play-data  Updates all play, shift, and roster data"
+    "  update-calendar   Update game schedule (defaults to updating unfinished/unplayed games)"
+    "  update-standings  Update standing information and create new index files (defaults to updating unfinished games)"
+    "  update-games      Update full game details and generate game pages (defaults to updating unfinished games)"
     ""
     "Please refer to the manual page for more information."]
     (clojure.string/join \newline)))
@@ -97,15 +130,13 @@
       errors (exit 1 (error-msg errors)))
       ;; Execute program with options
     (case (first arguments)
-      "migrate" (migrate)
-      "rollback" (rollback)
       "bootstrap" (bootstrap options)
+      "migrate" (migrate)
       "populate-season" (populate-season options)
+      "rollback" (rollback)
       "run-corrections" (run-corrections!)
+      "update-calendar" (update-calendar options)
+      "update-games" (update-games options)
       "update-standings" (update-standings options)
       "update-structure" (update-structure)
-      "update-play-data" (update-play-data options)
       (exit 1 (usage summary)))))
-
-;TODO add complete update for arbitary date
-

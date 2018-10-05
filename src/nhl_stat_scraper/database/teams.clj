@@ -86,6 +86,27 @@
                                                                              "db_id ASC"
                                                                              "teams"
                                                                              datasource)))
+(defn last-season
+  ([] (last-season db-pg/pg-datasource))
+  ([datasource]
+    (->> (jdbc/query datasource ["SELECT DISTINCT(UPPER(seasons_active)) AS season FROM teams ORDER BY UPPER(seasons_active) DESC"])
+        (map #(get % :season))
+        (filter #(not (nil? %)))
+        (map dec)   ;upper on seasons_active is exclusive so needs to be decreased by 1
+        (filter #(> 2125 %))
+        (apply max))))
+
+(defn last-active-seasons
+  "Returns hash-map with db_id as key and last active season as value"
+  ([] (last-active-seasons db-pg/pg-datasource))
+  ([datasource]
+    (let [default-season (last-season)]
+      (->> (jdbc/query datasource ["SELECT db_id, UPPER(seasons_active) AS season FROM teams"])
+          (map #(vector (get % :db_id)
+                        (if-let [season (get % :season)]
+                          (dec season) ;upper on season_active is exclusive
+                          default-season)))
+          (into (hash-map))))))
 
 (defn set-all-seasons
   "Sets seasons_active for all teams. Used when updating league structure from season-less teams"

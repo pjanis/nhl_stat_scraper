@@ -1,0 +1,5 @@
+{:up ["ALTER TABLE player_names ADD COLUMN first_name varchar(125);",
+      "ALTER TABLE player_names ADD COLUMN last_name varchar(125);"]
+ :down ["ALTER TABLE player_names DROP COLUMN first_name;",
+        "ALTER TABLE player_names DROP COLUMN last_name;"]
+}

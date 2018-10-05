@@ -5,3 +5,6 @@
 
 (defn season-from-id [id]
   (parse-int (subs (str id) 0 4)))
+
+(defn in? [collection element]
+  (some #(= element %) collection))
